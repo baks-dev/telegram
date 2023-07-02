@@ -21,40 +21,26 @@
  *  THE SOFTWARE.
  */
 
-declare(strict_types=1);
+namespace BaksDev\Telegram\Api\Webhook;
 
-namespace BaksDev\Telegram\Messenger;
+use BaksDev\Telegram\Api\Telegram;
 
-use BaksDev\Telegram\Exception\TelegramRequestException;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-
-#[AsMessageHandler]
-final class TelegramSender
+/**
+ * Используйте этот метод, чтобы получить текущий статус веб-перехватчика. Не требует параметров.
+ * В случае успеха возвращает объект WebhookInfo.
+ * Если бот использует getUpdates, он вернет объект с пустым полем URL.
+ *
+ * @see https://core.telegram.org/bots/api#getwebhookinfo
+ */
+final class TelegramWebhookInfo extends Telegram
 {
-    public function __invoke(TelegramMessage $message): array
+    protected function method(): string
     {
-        $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$message->getToken().'/']
-        );
-
-        $response = $HttpClient->request(
-            'POST',
-            $message->getMethod(),
-            ['json' => $message->getOption()]
-        );
-
-        if ($response->getStatusCode() !== 200)
-        {
-            if ($message->getMethod() === 'deleteMessage')
-            {
-                return [];
-            }
-
-            throw new TelegramRequestException(code: $response->getStatusCode());
-        }
-
-        return $response->toArray();
+        return 'getWebhookInfo';
     }
 
+    protected function option(): ?array
+    {
+        return null;
+    }
 }

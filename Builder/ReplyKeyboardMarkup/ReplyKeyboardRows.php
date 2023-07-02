@@ -23,38 +23,19 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Messenger;
+namespace BaksDev\Telegram\Builder\ReplyKeyboardMarkup;
 
-use BaksDev\Telegram\Exception\TelegramRequestException;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-
-#[AsMessageHandler]
-final class TelegramSender
+final class ReplyKeyboardRows
 {
-    public function __invoke(TelegramMessage $message): array
+    private array $buttons;
+
+    public function addRow(self $button) : void
     {
-        $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$message->getToken().'/']
-        );
-
-        $response = $HttpClient->request(
-            'POST',
-            $message->getMethod(),
-            ['json' => $message->getOption()]
-        );
-
-        if ($response->getStatusCode() !== 200)
-        {
-            if ($message->getMethod() === 'deleteMessage')
-            {
-                return [];
-            }
-
-            throw new TelegramRequestException(code: $response->getStatusCode());
-        }
-
-        return $response->toArray();
+        $this->buttons[] = $button;
     }
 
+    public function getRows(): array
+    {
+        return [$this->buttons];
+    }
 }

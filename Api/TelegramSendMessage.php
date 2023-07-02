@@ -18,42 +18,70 @@
 
 namespace BaksDev\Telegram\Api;
 
-use BaksDev\Telegram\Messenger\TelegramMessage;
+use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Используйте этот метод для отправки текстовых сообщений.
+ *
+ * @see https://core.telegram.org/bots/api#sendmessage
+ */
 final class TelegramSendMessage extends Telegram
 {
 
-    private const METHOD = 'sendPhoto';
+    /**
+     * Идентификатор чата
+     */
+    #[Assert\NotBlank]
+    private int $chanel;
 
-    private string $text;
+    /**
+     * Сообщение
+     */
+    #[Assert\NotBlank]
+    private string $message;
 
-//    private MessageDispatchInterface $messageDispatch;
-//
-//    public function __construct(MessageDispatchInterface $messageDispatch)
-//    {
-//        $this->messageDispatch = $messageDispatch;
-//    }
+    /**
+     * Встраиваемая клавиатура
+     */
+    private ?string $markup = null;
 
-    public function setText(string $text): self
+
+    public function message(string $message): self
     {
-        $this->text = $text;
+        $this->message = $message;
         return $this;
     }
 
-    public function send(): void
+    public function chanel(int $chanel): self
     {
-        $TelegramMessage = new TelegramMessage
-        (
-            self::METHOD,
-
-            [
-                'text' => $this->text,
-            ],
-
-            $this->getChanel(),
-            $this->getToken()
-        );
-
-        $this->getMessageDispatch()->dispatch($TelegramMessage);
+        $this->chanel = $chanel;
+        return $this;
     }
+
+    public function markup(array|string $markup): self
+    {
+        $this->markup = is_array($markup) ? json_encode($markup) : $markup;
+        return $this;
+    }
+
+
+    protected function method(): string
+    {
+        return 'sendMessage';
+    }
+
+    function option(): ?array
+    {
+        $option['chat_id'] = $this->chanel;
+        $option['text'] = $this->message;
+
+        if ($this->markup)
+        {
+            $option['reply_markup'] = $this->markup;
+        }
+
+
+        return $option;
+    }
+
 }

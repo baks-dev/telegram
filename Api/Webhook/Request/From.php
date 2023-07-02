@@ -23,38 +23,63 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Messenger;
+namespace BaksDev\Telegram\Api\Webhook\Request;
 
-use BaksDev\Telegram\Exception\TelegramRequestException;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-
-#[AsMessageHandler]
-final class TelegramSender
+final class From
 {
-    public function __invoke(TelegramMessage $message): array
+    private int $id;
+
+    private bool $is_bot;
+
+    private string $first_name;
+
+    private string $username;
+
+    private string $language_code;
+
+    /**
+     * Id.
+     */
+    public function getId(): int
     {
-        $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$message->getToken().'/']
-        );
-
-        $response = $HttpClient->request(
-            'POST',
-            $message->getMethod(),
-            ['json' => $message->getOption()]
-        );
-
-        if ($response->getStatusCode() !== 200)
-        {
-            if ($message->getMethod() === 'deleteMessage')
-            {
-                return [];
-            }
-
-            throw new TelegramRequestException(code: $response->getStatusCode());
-        }
-
-        return $response->toArray();
+        return $this->id;
     }
 
+    /**
+     * IsBot.
+     */
+    public function isBot(): bool
+    {
+        return $this->is_bot;
+    }
+
+    /**
+     * FirstName.
+     */
+    public function getFirstName(): string
+    {
+        return $this->first_name;
+    }
+
+    /**
+     * Username.
+     */
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    /**
+     * LanguageCode.
+     */
+    public function getLanguageCode(): string
+    {
+        return $this->language_code;
+    }
+
+    //+"id": 661608960
+    //+ "is_bot": false
+    //+ "first_name": "𝔏𝔦𝔩𝔦𝔱𝔥"
+    //+ "username": "ivoryfIower"
+    //+ "language_code": "ru"
 }

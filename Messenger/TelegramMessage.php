@@ -27,18 +27,15 @@ namespace BaksDev\Telegram\Messenger;
 
 final class TelegramMessage
 {
-    private array $option;
+    private readonly ?array $option;
 
-    private ?string $chanel;
+    private readonly ?string $token;
 
-    private ?string $token;
+    private readonly string $method;
 
-    private string $method;
-
-    public function __construct(string $method, array $option, string $chanel = null, string $token = null)
+    public function __construct(string $method, array $option = null, string $token = null)
     {
         $this->option = $option;
-        $this->chanel = $chanel;
         $this->token = $token;
         $this->method = $method;
     }
@@ -46,17 +43,9 @@ final class TelegramMessage
     /**
      * Option.
      */
-    public function getOption(): array
+    public function getOption(): ?array
     {
         return $this->option;
-    }
-
-    /**
-     * Chanel.
-     */
-    public function getChanel(): ?string
-    {
-        return $this->chanel;
     }
 
     /**
@@ -65,5 +54,13 @@ final class TelegramMessage
     public function getToken(): ?string
     {
         return $this->token;
+    }
+
+    /**
+     * Method.
+     */
+    public function getMethod(): string
+    {
+        return $this->method;
     }
 }

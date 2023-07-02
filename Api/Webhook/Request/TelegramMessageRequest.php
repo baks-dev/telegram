@@ -23,38 +23,77 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Messenger;
+namespace BaksDev\Telegram\Api\Webhook\Request;
 
-use BaksDev\Telegram\Exception\TelegramRequestException;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-
-#[AsMessageHandler]
-final class TelegramSender
+final class TelegramMessageRequest
 {
-    public function __invoke(TelegramMessage $message): array
+    private int $message_id; // ": 11
+
+    private string $text; // "привет"
+
+    private int $date; //  +"date": 1688060632
+
+    private ?From $from = null;
+
+    private ?Chat $chat = null;
+
+    public function __construct(string $json)
     {
-        $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$message->getToken().'/']
-        );
 
-        $response = $HttpClient->request(
-            'POST',
-            $message->getMethod(),
-            ['json' => $message->getOption()]
-        );
 
-        if ($response->getStatusCode() !== 200)
-        {
-            if ($message->getMethod() === 'deleteMessage')
-            {
-                return [];
-            }
-
-            throw new TelegramRequestException(code: $response->getStatusCode());
-        }
-
-        return $response->toArray();
     }
 
+    /**
+     * MessageId.
+     */
+    public function getId(): int
+    {
+        return $this->message_id;
+    }
+
+    /**
+     * Text.
+     */
+    public function getText(): string
+    {
+        return $this->text;
+    }
+
+    /**
+     * From.
+     */
+    public function getFrom(): From
+    {
+        return $this->from;
+    }
+
+    /**
+     * Chat.
+     */
+    public function getChat(): Chat
+    {
+        return $this->chat;
+    }
 }
+
+//
+//+"from": {#2164 ▶
+//    +"id": 661608960
+//    + "is_bot": false
+//    + "first_name": "𝔏𝔦𝔩𝔦𝔱𝔥"
+//    + "username": "ivoryfIower"
+//    + "language_code": "ru"
+//}
+
+//
+//+"chat": {#2165 ▶
+//    +"id": 661608960
+//    + "first_name": "𝔏𝔦𝔩𝔦𝔱𝔥"
+//    + "username": "ivoryfIower"
+//    + "type": "private"
+//    }
+//    +"date": 1688060632
+//
+//
+//+ "text": "привет"
+//}

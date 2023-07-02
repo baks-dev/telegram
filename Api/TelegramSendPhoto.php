@@ -18,16 +18,28 @@
 
 namespace BaksDev\Telegram\Api;
 
-use BaksDev\Telegram\Messenger\TelegramMessage;
 use CURLFile;
 
+/**
+ * Используйте этот метод для отправки фотографий.
+ *
+ * @see https://core.telegram.org/bots/api#sendphoto
+ */
 final class TelegramSendPhoto extends Telegram
 {
-    private const METHOD = 'sendPhoto';
-
     private CURLFile|string $photo;
 
     private string $caption;
+
+    private int $chanel;
+
+
+
+    public function chanel(int $chanel): self
+    {
+        $this->chanel = $chanel;
+        return $this;
+    }
 
     public function photo(CURLFile|string $photo): self
     {
@@ -42,18 +54,18 @@ final class TelegramSendPhoto extends Telegram
         return $this;
     }
 
-    public function send(): void
-    {
-        $TelegramMessage = new TelegramMessage(
-            self::METHOD,
-            [
-                'photo' => $this->photo,
-                'caption' => $this->caption,
-            ],
-            $this->getChanel(),
-            $this->getToken()
-        );
 
-        $this->getMessageDispatch()->dispatch($TelegramMessage);
+    protected function method(): string
+    {
+        return 'sendPhoto';
+    }
+
+    protected function option(): ?array
+    {
+        return [
+            'chat_id' => $this->chanel,
+            'photo' => $this->photo,
+            'caption' => $this->caption,
+        ];
     }
 }

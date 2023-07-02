@@ -23,38 +23,47 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Messenger;
+namespace BaksDev\Telegram\Api\Webhook\Request;
 
-use BaksDev\Telegram\Exception\TelegramRequestException;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-
-#[AsMessageHandler]
-final class TelegramSender
+final class Chat
 {
-    public function __invoke(TelegramMessage $message): array
+    private int $id; // 661608960
+
+    private string $first_name; //  "𝔏𝔦𝔩𝔦𝔱𝔥"
+
+    private string $username; // "ivoryfIower"
+
+    private string $type; // "private"
+
+    /**
+     * Id.
+     */
+    public function getId(): int
     {
-        $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$message->getToken().'/']
-        );
-
-        $response = $HttpClient->request(
-            'POST',
-            $message->getMethod(),
-            ['json' => $message->getOption()]
-        );
-
-        if ($response->getStatusCode() !== 200)
-        {
-            if ($message->getMethod() === 'deleteMessage')
-            {
-                return [];
-            }
-
-            throw new TelegramRequestException(code: $response->getStatusCode());
-        }
-
-        return $response->toArray();
+        return $this->id;
     }
 
+    /**
+     * FirstName.
+     */
+    public function getFirstName(): string
+    {
+        return $this->first_name;
+    }
+
+    /**
+     * Username.
+     */
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    /**
+     * Type.
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
 }

@@ -19,63 +19,82 @@
 namespace BaksDev\Telegram\Api;
 
 use BaksDev\Core\Services\Messenger\MessageDispatchInterface;
+use BaksDev\Telegram\Messenger\TelegramMessage;
+use BaksDev\Telegram\Messenger\TelegramSender;
+use InvalidArgumentException;
 
 abstract class Telegram
 {
-    private MessageDispatchInterface $messageDispatch;
+    private ?MessageDispatchInterface $messageDispatch;
 
-    public function __construct(MessageDispatchInterface $messageDispatch)
+    public function __construct(MessageDispatchInterface $messageDispatch = null)
     {
         $this->messageDispatch = $messageDispatch;
     }
 
-    abstract public function send(): void;
+    abstract protected function option(): ?array;
+
+    abstract protected function method(): string;
 
     /**
      * Токен авторизации.
      */
     private ?string $token = null;
 
-    /**
-     * Chanel.
-     */
-    private ?int $chanel = null;
-
-    /**
-     * Токен авторизации.
-     */
-    public function withToken(string $token): self
+    public function token(string $token): self
     {
         $this->token = $token;
         return $this;
     }
 
-    public function getToken(): ?string
+    /**
+     * Token.
+     */
+    protected function getToken(): ?string
     {
         return $this->token;
     }
 
-    /**
-     * Chanel.
-     */
-    public function getChanel(): ?int
+    public function send(bool $async = true): bool|array
     {
-        return $this->chanel;
+        if ($this->token == null)
+        {
+            throw new InvalidArgumentException('Не указан токен авторизации Telegram');
+        }
+
+
+        $TelegramMessage = new TelegramMessage(
+            method: $this->method(),
+            option: $this->option(),
+            token: $this->token
+        );
+
+        if ($async)
+        {
+            $this->messageDispatch->dispatch($TelegramMessage, transport: 'telegram');
+            return true;
+        }
+
+        return (new TelegramSender($this->token))($TelegramMessage);
     }
 
-    public function withChanel(?int $chanel): self
-    {
-        $this->chanel = $chanel;
-        return $this;
-    }
 
-    /**
-     * MessageDispatch.
-     */
-    public function getMessageDispatch(): MessageDispatchInterface
-    {
-        return $this->messageDispatch
-            ->transport('telegram');
-    }
-
+//    public function get(): array
+//    {
+//        $HttpClient = HttpClient::create()->withOptions(
+//            ['base_uri' => 'https://api.telegram.org']
+//        );
+//
+//        $response = $HttpClient->request(
+//            'GET',
+//            '/bot'.$this->getToken().'/'.$this->method()
+//        );
+//
+//        if ($response->getStatusCode() !== 200)
+//        {
+//            throw new TelegramRequestException(code: $response->getStatusCode());
+//        }
+//
+//        return $response->toArray();
+//    }
 }

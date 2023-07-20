@@ -55,13 +55,12 @@ abstract class Telegram
         return $this->token;
     }
 
-    public function send(bool $async = true): bool|array
+    public function send(bool $async = true): bool|array|null
     {
-        if ($this->token == null)
+        if ($this->token === null)
         {
             throw new InvalidArgumentException('Не указан токен авторизации Telegram');
         }
-
 
         $TelegramMessage = new TelegramMessage(
             method: $this->method(),
@@ -75,26 +74,7 @@ abstract class Telegram
             return true;
         }
 
-        return (new TelegramSender($this->token))($TelegramMessage);
+        return (new TelegramSender())($TelegramMessage) ?: false;
     }
 
-
-//    public function get(): array
-//    {
-//        $HttpClient = HttpClient::create()->withOptions(
-//            ['base_uri' => 'https://api.telegram.org']
-//        );
-//
-//        $response = $HttpClient->request(
-//            'GET',
-//            '/bot'.$this->getToken().'/'.$this->method()
-//        );
-//
-//        if ($response->getStatusCode() !== 200)
-//        {
-//            throw new TelegramRequestException(code: $response->getStatusCode());
-//        }
-//
-//        return $response->toArray();
-//    }
 }

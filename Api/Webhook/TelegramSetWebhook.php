@@ -24,6 +24,7 @@
 namespace BaksDev\Telegram\Api\Webhook;
 
 use BaksDev\Telegram\Api\Telegram;
+use InvalidArgumentException;
 
 /**
  * Используйте этот метод, чтобы указать URL-адрес и получать входящие обновления через исходящий веб-перехватчик.
@@ -35,7 +36,7 @@ use BaksDev\Telegram\Api\Telegram;
  */
 final class TelegramSetWebhook extends Telegram
 {
-    private string $url;
+    private ?string $url = null;
 
     /**
      * Секретный токен, который будет отправлен в заголовке «X-Telegram-Bot-Api-Secret-Token» в каждом запросе вебхука, 1-256 символов.
@@ -44,17 +45,32 @@ final class TelegramSetWebhook extends Telegram
      */
     private ?string $secret = null;
 
+    /**
+     * Максимально допустимое количество одновременных подключений HTTPS к веб-перехватчику для доставки обновлений, 1–100.
+     * По умолчанию 40. Используйте более низкие значения, чтобы ограничить нагрузку на сервер вашего бота,
+     * и более высокие значения, чтобы увеличить пропускную способность вашего бота.
+     */
+    private ?int $connections = null;
+
+
     public function url(string $url): self
     {
         $this->url = $url;
         return $this;
     }
 
-     public function secret(string $secret): self
-     {
-         $this->secret = $secret;
-         return $this;
-     }
+    public function secret(string $secret): self
+    {
+        $this->secret = $secret;
+        return $this;
+    }
+
+    public function connections(int $connections): self
+    {
+        $this->connections = $connections;
+        return $this;
+    }
+
 
     protected function method(): string
     {
@@ -63,10 +79,21 @@ final class TelegramSetWebhook extends Telegram
 
     protected function option(): ?array
     {
+        if(empty($this->url))
+        {
+            throw new InvalidArgumentException('Не указан Url обратного вызова Telegram-бота');
+        }
+
         $option['url'] = $this->url;
 
-        if ($this->secret) {
+        if($this->secret)
+        {
             $option['secret_token'] = $this->secret;
+        }
+
+        if($this->secret)
+        {
+            $option['max_connections'] = $this->connections;
         }
 
         return $option;

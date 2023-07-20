@@ -18,6 +18,7 @@
 
 namespace BaksDev\Telegram\Api;
 
+use InvalidArgumentException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -32,13 +33,13 @@ final class TelegramSendMessage extends Telegram
      * Идентификатор чата
      */
     #[Assert\NotBlank]
-    private int $chanel;
+    private ?int $chanel = null;
 
     /**
      * Сообщение
      */
     #[Assert\NotBlank]
-    private string $message;
+    private ?string $message = null;
 
     /**
      * Встраиваемая клавиатура
@@ -51,6 +52,16 @@ final class TelegramSendMessage extends Telegram
         $this->message = $message;
         return $this;
     }
+
+    /**
+     * Message
+     */
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
+
 
     public function chanel(int $chanel): self
     {
@@ -72,7 +83,20 @@ final class TelegramSendMessage extends Telegram
 
     function option(): ?array
     {
+        if ($this->chanel == null)
+        {
+            throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
+        }
+
+
         $option['chat_id'] = $this->chanel;
+
+
+        if ($this->message == null)
+        {
+            throw new InvalidArgumentException('Не указан текст сообщения для отправки в Telegram');
+        }
+
         $option['text'] = $this->message;
 
         if ($this->markup)

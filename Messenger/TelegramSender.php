@@ -28,25 +28,30 @@ namespace BaksDev\Telegram\Messenger;
 use BaksDev\Telegram\Exception\TelegramRequestException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 #[AsMessageHandler]
 final class TelegramSender
 {
+
+    private ?string $token;
+
+
     public function __invoke(TelegramMessage $message): array
     {
+        $this->token = $message->getToken();
+
         $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$message->getToken().'/']
+            ['base_uri' => 'https://api.telegram.org/bot'.$this->token.'/']
         );
 
         $response = $HttpClient->request(
-            'POST',
-            $message->getMethod(),
-            ['json' => $message->getOption()]
+            'POST', $message->getMethod(), ['json' => $message->getOption()]
         );
 
-        if ($response->getStatusCode() !== 200)
+        if($response->getStatusCode() !== 200)
         {
-            if ($message->getMethod() === 'deleteMessage')
+            if($message->getMethod() === 'deleteMessage')
             {
                 return [];
             }
@@ -54,7 +59,48 @@ final class TelegramSender
             throw new TelegramRequestException(code: $response->getStatusCode());
         }
 
+        if($message->getMethod() === 'getFile')
+        {
+            return $this->saveFile($response);
+        }
+
         return $response->toArray();
+    }
+
+
+    public function saveFile(ResponseInterface $response): array
+    {
+        $dataFile = $response->toArray();
+
+        if($dataFile['ok'])
+        {
+            $HttpClient = HttpClient::create()->withOptions(
+                ['base_uri' => 'https://api.telegram.org/file/bot'.$this->token.'/']
+            );
+
+            $download = $HttpClient->request(
+                'GET',
+                $dataFile['result']['file_path']
+            );
+
+            $pathInfo = pathinfo($dataFile['result']['file_path']);
+            $extension = $pathInfo['extension'];
+
+            $tmpfname = tempnam(sys_get_temp_dir(), $dataFile['result']['file_unique_id']);
+            $tmp_file = sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].'.'.$extension;
+            rename($tmpfname, $tmp_file);
+
+            $handle = fopen($tmp_file, "w");
+            fwrite($handle, $download->getContent());
+            fclose($handle);
+
+            $dataFile = array_merge(
+                $dataFile, ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].'.'.$extension]
+            );
+
+        }
+
+        return $dataFile;
     }
 
 }

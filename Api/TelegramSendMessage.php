@@ -28,13 +28,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class TelegramSendMessage extends Telegram
 {
-
-    /**
-     * Идентификатор чата
-     */
-    #[Assert\NotBlank]
-    private ?int $chanel = null;
-
     /**
      * Сообщение
      */
@@ -61,14 +54,6 @@ final class TelegramSendMessage extends Telegram
         return $this->message;
     }
 
-
-
-    public function chanel(int $chanel): self
-    {
-        $this->chanel = $chanel;
-        return $this;
-    }
-
     public function markup(array|string $markup): self
     {
         $this->markup = is_array($markup) ? json_encode($markup) : $markup;
@@ -83,7 +68,7 @@ final class TelegramSendMessage extends Telegram
 
     function option(): ?array
     {
-        if ($this->chanel == null)
+        if ($this->chanel === null)
         {
             throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
         }
@@ -92,7 +77,7 @@ final class TelegramSendMessage extends Telegram
         $option['chat_id'] = $this->chanel;
 
 
-        if ($this->message == null)
+        if ($this->message === null)
         {
             throw new InvalidArgumentException('Не указан текст сообщения для отправки в Telegram');
         }
@@ -104,6 +89,7 @@ final class TelegramSendMessage extends Telegram
             $option['reply_markup'] = $this->markup;
         }
 
+        $option['parse_mode'] = 'html';
 
         return $option;
     }

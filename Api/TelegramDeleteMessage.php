@@ -36,20 +36,11 @@ final class TelegramDeleteMessage extends Telegram
 {
     private int $message;
 
-    private int $chanel;
-
     public function delete(int $message): self
     {
         $this->message = $message;
         return $this;
     }
-
-    public function chanel(int $chanel): self
-    {
-        $this->chanel = $chanel;
-        return $this;
-    }
-
 
     protected function method(): string
     {

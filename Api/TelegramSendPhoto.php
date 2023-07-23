@@ -39,29 +39,20 @@ final class TelegramSendPhoto extends Telegram
     private CURLFile|string|null $photo = null;
 
 
-    /**
-     * Идентификатор чата
-     */
-    #[Assert\NotBlank]
-    private ?int $chanel = null;
-
     private ?string $caption = null;
 
-    public function chanel(int $chanel): self
-    {
-        $this->chanel = $chanel;
-        return $this;
-    }
+    /**
+     * Встраиваемая клавиатура
+     */
+    private ?string $markup = null;
+
+
 
     public function photo(CURLFile|string $photo): self
     {
         $this->photo = $photo;
         return $this;
     }
-
-
-
-
 
     /** подпись */
     public function caption(string $caption): self
@@ -100,7 +91,12 @@ final class TelegramSendPhoto extends Telegram
         if ($this->caption)
         {
             $option['caption'] = $this->caption;
-            $option['parse_mode'] = 'MarkdownV2';
+            $option['parse_mode'] = 'html';
+        }
+
+        if ($this->markup)
+        {
+            $option['reply_markup'] = $this->markup;
         }
 
         
@@ -183,6 +179,12 @@ final class TelegramSendPhoto extends Telegram
         imagecopyresampled($newImage, $img, 0, 0, 0, 0, $width, $height, $getWidth, $getHeight);
 
         return $newImage;
+    }
+
+    public function markup(array|string $markup): self
+    {
+        $this->markup = is_array($markup) ? json_encode($markup) : $markup;
+        return $this;
     }
 
 

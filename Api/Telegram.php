@@ -27,6 +27,8 @@ abstract class Telegram
 {
     private ?MessageDispatchInterface $messageDispatch;
 
+    protected string|int|null $chanel = null;
+
     public function __construct(MessageDispatchInterface $messageDispatch = null)
     {
         $this->messageDispatch = $messageDispatch;
@@ -44,6 +46,19 @@ abstract class Telegram
     public function token(string $token): self
     {
         $this->token = $token;
+        return $this;
+    }
+
+
+    public function chanel(int|string $chanel): self
+    {
+        if(is_string($chanel))
+        {
+            $chanel = (int) filter_var($chanel, FILTER_SANITIZE_NUMBER_INT);
+        }
+
+        $this->chanel = $chanel;
+
         return $this;
     }
 

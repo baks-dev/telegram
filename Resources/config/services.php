@@ -23,16 +23,18 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-return static function (ContainerConfigurator $configurator) {
+return static function(ContainerConfigurator $configurator) {
+
     $services = $configurator->services()
         ->defaults()
-        ->autowire()      // Automatically injects dependencies in your services.
-        ->autoconfigure() // Automatically registers your services as commands, event subscribers, etc.
-    ;
+        ->autowire()
+        ->autoconfigure();
 
-    $namespace = 'BaksDev\Telegram';
+    $NAMESPACE = 'BaksDev\Telegram\\';
 
-    $services->load($namespace.'\\', __DIR__.'/../../')
-        ->exclude(__DIR__.'/../../{Controller,Entity,Resources,Type,Tests,Exception,*DTO.php,*Message.php}');
+    $MODULE = substr(__DIR__, 0, strpos(__DIR__, "Resources"));
+
+    $services->load($NAMESPACE, $MODULE)
+        ->exclude($MODULE.'{Controller,Entity,Resources,Type,Tests,Exception,*DTO.php,*Message.php}');
 
 };

@@ -25,9 +25,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Symfony\Config\FrameworkConfig;
 
-return static function (FrameworkConfig $framework) {
+return static function(FrameworkConfig $framework) {
 
-    /** Транспорт отправки сообщений */
     $messenger = $framework->messenger();
 
     $messenger
@@ -39,7 +38,6 @@ return static function (FrameworkConfig $framework) {
         ->delay(1000)
         ->maxDelay(0)
         ->multiplier(3) // увеличиваем задержку перед каждой повторной попыткой
-        ->service(null)
-    ;
+        ->service(null);
 
 };

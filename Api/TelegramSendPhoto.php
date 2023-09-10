@@ -46,8 +46,7 @@ final class TelegramSendPhoto extends Telegram
      */
     private ?string $markup = null;
 
-
-
+    
     public function photo(CURLFile|string $photo): self
     {
         $this->photo = $photo;

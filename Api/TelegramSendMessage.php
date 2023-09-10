@@ -54,7 +54,7 @@ final class TelegramSendMessage extends Telegram
         return $this->message;
     }
 
-    public function markup(array|string $markup): self
+    public function markup(array|string|null $markup): self
     {
         $this->markup = is_array($markup) ? json_encode($markup) : $markup;
         return $this;
@@ -68,7 +68,7 @@ final class TelegramSendMessage extends Telegram
 
     function option(): ?array
     {
-        if ($this->chanel === null)
+        if($this->chanel === null)
         {
             throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
         }
@@ -77,14 +77,14 @@ final class TelegramSendMessage extends Telegram
         $option['chat_id'] = $this->chanel;
 
 
-        if ($this->message === null)
+        if($this->message === null)
         {
             throw new InvalidArgumentException('Не указан текст сообщения для отправки в Telegram');
         }
 
         $option['text'] = $this->message;
 
-        if ($this->markup)
+        if($this->markup)
         {
             $option['reply_markup'] = $this->markup;
         }

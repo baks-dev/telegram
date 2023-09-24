@@ -36,7 +36,6 @@ final class TelegramSender
 
     private ?string $token;
 
-
     public function __invoke(TelegramMessage $message): array
     {
         $this->token = $message->getToken();

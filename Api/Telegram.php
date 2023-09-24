@@ -18,7 +18,7 @@
 
 namespace BaksDev\Telegram\Api;
 
-use BaksDev\Core\Services\Messenger\MessageDispatchInterface;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Telegram\Messenger\TelegramMessage;
 use BaksDev\Telegram\Messenger\TelegramSender;
 use InvalidArgumentException;
@@ -29,10 +29,11 @@ abstract class Telegram
 
     protected string|int|null $chanel = null;
 
-    public function __construct(MessageDispatchInterface $messageDispatch = null)
+    public function __construct(MessageDispatchInterface $messageDispatch = null,)
     {
         $this->messageDispatch = $messageDispatch;
     }
+
 
     abstract protected function option(): ?array;
 
@@ -70,9 +71,9 @@ abstract class Telegram
         return $this->token;
     }
 
-    public function send(bool $async = true): bool|array|null
+    public function send(bool $async = false): bool|array|null
     {
-        if ($this->token === null)
+        if($this->token === null)
         {
             throw new InvalidArgumentException('Не указан токен авторизации Telegram');
         }
@@ -83,7 +84,7 @@ abstract class Telegram
             token: $this->token
         );
 
-        if ($async)
+        if($async && $this->messageDispatch)
         {
             $this->messageDispatch->dispatch($TelegramMessage, transport: 'telegram');
             return true;

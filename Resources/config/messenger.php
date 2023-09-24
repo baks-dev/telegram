@@ -34,10 +34,26 @@ return static function(FrameworkConfig $framework) {
         ->dsn('%env(MESSENGER_TRANSPORT_DSN)%')
         ->options(['queue_name' => 'telegram'])
         ->retryStrategy()
-        ->maxRetries(5)
-        ->delay(1000)
+        ->maxRetries(5) // количество попыток отправки сообщения
+        ->delay(1000) // задержка в миллисекундах
         ->maxDelay(0)
         ->multiplier(3) // увеличиваем задержку перед каждой повторной попыткой
         ->service(null);
 
 };
+
+
+/* baks-telegram@.service
+
+[Unit]
+Description=Baks Telegram Messenger %i
+
+[Service]
+ExecStart=php /.......PATH_TO_PROJECT......../bin/console messenger:consume telegram --memory-limit=128m --time-limit=3600 --limit=1000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+
+*/

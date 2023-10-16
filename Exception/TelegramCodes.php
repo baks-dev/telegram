@@ -94,7 +94,7 @@ final class TelegramCodes
     ];
 
 
-    public static function getCode(int $code) : string
+    public static function getCode(int $code): string
     {
         return self::$codes[$code];
     }

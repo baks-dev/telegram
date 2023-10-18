@@ -16,9 +16,6 @@ $ composer require baks-dev/telegram
 $ php bin/phpunit --group=telegram
 ```
 
-## Журнал изменений ![Changelog](https://img.shields.io/badge/changelog-yellow)
-
-О том, что изменилось за последнее время, обратитесь к [CHANGELOG](CHANGELOG.md) за дополнительной информацией.
 
 ## Лицензия ![License](https://img.shields.io/badge/MIT-green)
 

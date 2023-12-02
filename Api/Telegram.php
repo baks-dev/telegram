@@ -86,7 +86,7 @@ abstract class Telegram
 
         if($async && $this->messageDispatch)
         {
-            $this->messageDispatch->dispatch($TelegramMessage, transport: 'telegram');
+            $this->messageDispatch->dispatch($TelegramMessage, transport: $this->method() === 'deleteMessage' ? 'async' : 'telegram');
             return true;
         }
 

@@ -34,7 +34,7 @@ return static function(FrameworkConfig $framework) {
         ->dsn('%env(MESSENGER_TRANSPORT_DSN)%')
         ->options(['queue_name' => 'telegram'])
         ->retryStrategy()
-        ->maxRetries(5) // количество попыток отправки сообщения
+        ->maxRetries(3) // количество попыток отправки сообщения
         ->delay(1000) // задержка в миллисекундах
         ->maxDelay(0)
         ->multiplier(3) // увеличиваем задержку перед каждой повторной попыткой

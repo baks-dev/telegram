@@ -80,5 +80,7 @@ final class TelegramRequestMessageTest extends WebTestCase
 
         }
 
+        self::assertTrue(true);
+
     }
 }

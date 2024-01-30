@@ -33,12 +33,18 @@ return static function(FrameworkConfig $framework) {
         ->transport('telegram')
         ->dsn('%env(MESSENGER_TRANSPORT_DSN)%')
         ->options(['queue_name' => 'telegram'])
+        ->failureTransport('failed-telegram')
         ->retryStrategy()
         ->maxRetries(3) // количество попыток отправки сообщения
         ->delay(1000) // задержка в миллисекундах
         ->maxDelay(0)
         ->multiplier(3) // увеличиваем задержку перед каждой повторной попыткой
-        ->service(null);
+        ->service(null)
+
+    ;
+
+    $messenger->transport('failed-telegram')
+        ->dsn('%env(MESSENGER_TRANSPORT_DSN)%');
 
 };
 

@@ -55,6 +55,8 @@ final class TelegramSender
                 return [];
             }
 
+            dump($response->getContent());
+
             throw new TelegramRequestException(code: $response->getStatusCode());
         }
 

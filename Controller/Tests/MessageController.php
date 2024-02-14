@@ -25,18 +25,15 @@ declare(strict_types=1);
 
 namespace BaksDev\Telegram\Controller\Tests;
 
-use BaksDev\Core\Form\Search\SearchDTO;
-use BaksDev\Core\Form\Search\SearchForm;
-use BaksDev\Telegram\Request\TelegramRequestDTO;
+use BaksDev\Core\Controller\AbstractController;
+use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
+use BaksDev\Telegram\Request\TelegramRequest;
+use BaksDev\Telegram\Request\TelegramResponseInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
-use Symfony\Component\Routing\Annotation\Route;
-use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
 use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[AsController]
 #[RoleSecurity('ROLE_USER')]
@@ -44,11 +41,18 @@ final class MessageController extends AbstractController
 {
     #[Route('/test/telegram/request/message', name: 'test.telegram.request.message', methods: ['POST'])]
     public function __invoke(
-        Request $request,
-        #[MapRequestPayload] TelegramRequestDTO $telegramRequest
+        TelegramRequest $request,
+        //#[MapRequestPayload] TelegramRequestDTO $telegramRequest
         // SerializerInterface $serializer,
     ): Response
     {
+
+        /** @var TelegramResponseInterface $response */
+        //$response = new TelegramRequest();
+
+        $TelegramRequest = $request->response();
+
+        dd($TelegramRequest);
 
         //dd($telegramRequest);
 
@@ -60,6 +64,6 @@ final class MessageController extends AbstractController
 
         //dd($request->getContent());
 
-        return new JsonResponse($telegramRequest);
+        return new JsonResponse('$telegramRequest');
     }
 }

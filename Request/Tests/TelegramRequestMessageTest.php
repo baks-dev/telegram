@@ -76,7 +76,7 @@ final class TelegramRequestMessageTest extends WebTestCase
 
             $client->jsonRequest('POST', self::URL, $data);
 
-            dd(self::class);
+            //dd(self::class);
 
             //$array = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
             //self::assertEquals($array, $data);

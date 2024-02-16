@@ -28,42 +28,29 @@ namespace BaksDev\Telegram\Controller\Tests;
 use BaksDev\Core\Controller\AbstractController;
 use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
 use BaksDev\Telegram\Request\TelegramRequest;
-use BaksDev\Telegram\Request\TelegramResponseInterface;
+use BaksDev\Telegram\Request\Type\TelegramRequestAudio;
+use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[AsController]
 #[RoleSecurity('ROLE_USER')]
-final class MessageController extends AbstractController
+final class TestAudioController extends AbstractController
 {
-    #[Route('/test/telegram/request/message', name: 'test.telegram.request.message', methods: ['POST'])]
+    #[Route('/test/telegram/request/audio', name: 'test.telegram.request.audio', methods: ['POST'])]
     public function __invoke(
-        TelegramRequest $request,
-        //#[MapRequestPayload] TelegramRequestDTO $telegramRequest
-        // SerializerInterface $serializer,
+        TelegramRequest $request
     ): Response
     {
+        $TelegramRequest = $request->request();
 
-        /** @var TelegramResponseInterface $response */
-        //$response = new TelegramRequest();
+        if(!$TelegramRequest instanceof TelegramRequestAudio)
+        {
+            throw new InvalidArgumentException('Invalid Telegram Request Audio');
+        }
 
-        $TelegramRequest = $request->response();
-
-        //dd($TelegramRequest);
-
-        //dd($telegramRequest);
-
-        //dd($telegramRequest);
-
-//        $json = $request->getContent();
-//        $telegramRequest = $serializer->deserialize($json, TelegramRequestDTO::class, 'json');
-
-
-        //dd($request->getContent());
-
-        return new JsonResponse('$telegramRequest');
+        return new JsonResponse(['success']);
     }
 }

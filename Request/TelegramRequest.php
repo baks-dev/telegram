@@ -27,9 +27,13 @@ namespace BaksDev\Telegram\Request;
 
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
-use BaksDev\Telegram\Request\Type\TelegramRequestCallbackDTO;
-use BaksDev\Telegram\Request\Type\TelegramRequestMessageDTO;
-use BaksDev\Telegram\Request\Type\TelegramRequestProtoDTO;
+use BaksDev\Telegram\Request\Type\TelegramRequestAudio;
+use BaksDev\Telegram\Request\Type\TelegramRequestCallback;
+use BaksDev\Telegram\Request\Type\TelegramRequestDocument;
+use BaksDev\Telegram\Request\Type\TelegramRequestLocation;
+use BaksDev\Telegram\Request\Type\TelegramRequestMessage;
+use BaksDev\Telegram\Request\Type\TelegramRequestPhoto;
+use BaksDev\Telegram\Request\Type\TelegramRequestVideo;
 use DateInterval;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -37,6 +41,9 @@ use Symfony\Contracts\Cache\CacheInterface;
 
 final class TelegramRequest
 {
+
+    private ?TelegramRequestInterface $telegramRequest = null;
+
     private object $request;
 
     private RequestStack $requestStack;
@@ -44,6 +51,7 @@ final class TelegramRequest
     private CacheInterface $cache;
 
     private LoggerInterface $logger;
+
     private GetTelegramBotSettingsInterface $telegramBotSettings;
 
     public function __construct(
@@ -59,13 +67,14 @@ final class TelegramRequest
         $this->telegramBotSettings = $telegramBotSettings;
     }
 
-    public function response(): ?TelegramResponseInterface
+    public function request(): ?TelegramRequestInterface
     {
         $secretToken = $this->requestStack->getCurrentRequest()
             ->headers->get('x-telegram-bot-api-secret-token');
 
         if(!$secretToken)
         {
+            $this->telegramRequest = null;
             $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token');
             return null;
         }
@@ -74,8 +83,14 @@ final class TelegramRequest
 
         if(!$settings->equalsSecret($secretToken))
         {
+            $this->telegramRequest = null;
             $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token');
             return null;
+        }
+
+        if($this->telegramRequest)
+        {
+            return $this->telegramRequest;
         }
 
         $data = $this->requestStack->getCurrentRequest()?->getContent();
@@ -85,21 +100,113 @@ final class TelegramRequest
 
         if(!property_exists($this->request, 'message'))
         {
+            $this->telegramRequest = null;
             return null;
         }
 
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
         {
-            return new TelegramRequestCallbackDTO($this->getUser(), $this->getChat());
+            return $this->responseCallback();
         }
 
-        if(property_exists($this->request->message, 'photo') && !empty($this->request->message->photo))
+        return match (true)
         {
-            return new TelegramRequestProtoDTO($this->getUser(), $this->getChat());
+            property_exists($this->request->message, 'photo') && !empty($this->request->message->photo) => $this->responsePhoto(),
+            property_exists($this->request->message, 'audio') && !empty($this->request->message->audio) => $this->responseAudio(),
+            property_exists($this->request->message, 'video') && !empty($this->request->message->video) => $this->responseVideo(),
+            property_exists($this->request->message, 'document') && !empty($this->request->message->document) => $this->responseDocument(),
+            property_exists($this->request->message, 'location') && !empty($this->request->message->location) => $this->responseLocation(),
+            default => $this->responseMessage()
+        };
+    }
+
+
+    private function responseCallback(): ?TelegramRequestCallback
+    {
+        $TelegramRequestCallback = new TelegramRequestCallback($this->getUser(), $this->getChat());
+
+        return $TelegramRequestCallback;
+    }
+
+    private function responseVideo(): ?TelegramRequestVideo
+    {
+        $TelegramRequestVideo = new TelegramRequestVideo($this->getUser(), $this->getChat());
+
+        return $TelegramRequestVideo;
+    }
+
+    private function responseAudio(): ?TelegramRequestAudio
+    {
+        $TelegramRequestAudio = new TelegramRequestAudio($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestAudio;
+    }
+
+    private function responseDocument(): ?TelegramRequestDocument
+    {
+        $TelegramRequestDocument = new TelegramRequestDocument($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestDocument;
+    }
+
+    private function responseLocation(): ?TelegramRequestLocation
+    {
+        $TelegramRequestLocation = new TelegramRequestLocation($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestLocation;
+    }
+
+    private function responsePhoto(): ?TelegramRequestPhoto
+    {
+        $TelegramRequestPhoto = new TelegramRequestPhoto($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestPhoto;
+    }
+
+
+    private function responseMessage(): ?TelegramRequestMessage
+    {
+        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat());
+
+        $message = $this->request->message;
+
+        $TelegramRequestMessage->setUpdate($this->request->update_id);
+
+        /** Присваиваем идентификатор предыдущего сообщения */
+        $lastItem = $this->cache->getItem('last-'.$TelegramRequestMessage->getUserId());
+        $TelegramRequestMessage->setLast((int) $lastItem->get());
+
+        $systemItem = $this->cache->getItem('system-'.$TelegramRequestMessage->getChatId());
+        $TelegramRequestMessage->setSystem((int) $systemItem->get());
+
+        if(property_exists($message, 'message_id'))
+        {
+            $TelegramRequestMessage->setId($message->message_id);
         }
 
-        return $this->responseMessage();
+        if(property_exists($message, 'date'))
+        {
+            $TelegramRequestMessage->setDate($message->date);
+        }
+
+        if(property_exists($message, 'text'))
+        {
+            $TelegramRequestMessage->setText($message->text);
+        }
+
+        if(property_exists($message, 'language_code'))
+        {
+            $TelegramRequestMessage->setLocale($message->language_code);
+        }
+
+        /** Сохраняем идентификатор текущего сообщения */
+        $lastItem->set($message->message_id);
+        $lastItem->expiresAfter(DateInterval::createFromDateString('1 day'));
+        $this->cache->save($lastItem);
+
+        return $this->telegramRequest = $TelegramRequestMessage;
     }
+
 
     public function getUser(): TelegramUserDTO
     {
@@ -109,14 +216,38 @@ final class TelegramRequest
 
         $user
             ->setId($data->id)
-            ->setUsername($data->username)
-            ->setFirstName($data->first_name)
-            ->setLastName($data->last_name)
-            ->setIsBot($data->is_bot);
+            ->setIsBot((bool) $data->is_bot)
+            ->setFirstName($data->first_name);
+
+        /**
+         * @note Optional.
+         * Имя пользователя или бота
+         */
+        if(property_exists($data, 'username'))
+        {
+            $user->setUsername($data->username);
+        }
+
+        /**
+         * @note Optional.
+         * Фамилия пользователя или бота
+         */
+        if(property_exists($data, 'last_name'))
+        {
+            $user->setLastName($data->last_name);
+        }
+
+        /**
+         * @note Optional.
+         * Фамилия пользователя или бота
+         */
+        if(property_exists($data, 'is_premium'))
+        {
+            $user->setLastName($data->is_premium);
+        }
 
         return $user;
     }
-
 
     public function getChat(): TelegramChatDTO
     {
@@ -126,64 +257,39 @@ final class TelegramRequest
 
         $chat
             ->setId($data->id)
-            ->setUsername($data->username)
-            ->setFirstName($data->first_name)
-            ->setLastName($data->last_name)
             ->setType($data->type);
+
+
+        /**
+         * @note Optional.
+         * Имя пользователя для частных чатов, супергрупп и каналов, если они доступны.
+         */
+        if(property_exists($data, 'username'))
+        {
+            $chat->setUsername($data->username);
+        }
+
+        /**
+         * @note Optional.
+         * Имя собеседника в приватном чате
+         */
+        if(property_exists($data, 'first_name'))
+        {
+            $chat->setFirstName($data->first_name);
+        }
+
+
+        /**
+         * @note  Optional.
+         * Фамилия собеседника в приватном чате
+         */
+        if(property_exists($data, 'last_name'))
+        {
+            $chat->setLastName($data->last_name);
+        }
 
         return $chat;
     }
 
-    public function responseMessage(): ?TelegramRequestMessageDTO
-    {
-        $TelegramRequestMessageDTO = new TelegramRequestMessageDTO($this->getUser(), $this->getChat());
-
-        $message = $this->request->message;
-
-        $lastItem = $this->cache->getItem('last-'.$TelegramRequestMessageDTO->getUserId());
-
-        $TelegramRequestMessageDTO
-            ->setId($message->message_id)
-            ->setUpdate($this->request->update_id)
-            ->setDate($message->date)
-            ->setText($message->text)
-            ->setLast((int) $lastItem->get());
-
-        /** Пересохраняем идентификатор сообщения */
-        $lastItem->set($message->message_id);
-        $lastItem->expiresAfter(DateInterval::createFromDateString('1 day'));
-        $this->cache->save($lastItem);
-
-        return $TelegramRequestMessageDTO;
-    }
-
-    /*$data = [
-
-    "update_id" => 123456789,
-
-    "callback_query" => null,
-
-    "message" => [
-        "message_id" => 123,
-
-        "from" => [
-            "id" => 123456,
-            "is_bot" => false,
-            "first_name" => "John",
-            "last_name" => "Doe",
-            "username" => "johndoe"
-        ],
-
-        "chat" => [
-            "id" => 123456,
-            "type" => "private",
-            "first_name" => "John",
-            "last_name" => "Doe",
-            "username" => "johndoe"
-        ],
-        "date" => 1634323289,
-        "text" => "Hello, world!",
-        "photo" => null
-    ]*/
 
 }

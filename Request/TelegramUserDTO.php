@@ -29,13 +29,33 @@ final class TelegramUserDTO
 {
     private int $id;
 
+    /**
+     * Верно, если этот пользователь — бот
+     */
     private bool $is_bot = false;
 
+    /**
+     * Имя пользователя или бота
+     */
     private string $first_name;
 
-    private string $last_name;
+    /**
+     * @note Optional.
+     * Фамилия пользователя или бота
+     */
+    private ?string $last_name = null;
 
-    private string $username;
+    /**
+     * @note Optional.
+     * Имя пользователя или бота
+     */
+    private ?string $username = null;
+
+    /**
+     * @note Optional.
+     * Верно, если этот пользователь является пользователем Telegram Premium.
+     */
+    private bool $premium = false;
 
     /**
      * Id
@@ -96,15 +116,28 @@ final class TelegramUserDTO
     /**
      * Username
      */
-    public function getUsername(): string
+    public function getUsername(): ?string
     {
         return $this->username;
     }
 
-    public function setUsername(string $username): self
+    public function setUsername(?string $username): self
     {
         $this->username = $username;
         return $this;
     }
 
+    /**
+     * Premium
+     */
+    public function isPremium(): bool
+    {
+        return $this->premium;
+    }
+
+    public function setPremium(bool $premium): self
+    {
+        $this->premium = $premium;
+        return $this;
+    }
 }

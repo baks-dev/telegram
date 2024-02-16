@@ -21,18 +21,23 @@
  *  THE SOFTWARE.
  */
 
-namespace BaksDev\Telegram\Request;
+declare(strict_types=1);
 
-interface TelegramResponseInterface
+namespace BaksDev\Telegram\Request\Type;
+
+use BaksDev\Telegram\Request\AbstractTelegramRequest;
+use BaksDev\Telegram\Request\TelegramChatDTO;
+use BaksDev\Telegram\Request\TelegramUserDTO;
+use BaksDev\Telegram\Request\TelegramRequestInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+
+/**
+ * Новый входящий запрос обратного вызова
+ * @see https://core.telegram.org/bots/api#callbackquery
+ */
+final class TelegramRequestCallback  extends AbstractTelegramRequest
 {
-    /**
-     * User
-     */
-    public function getUser(): TelegramUserDTO;
 
-    /**
-     * Chat
-     */
-    public function getChat(): TelegramChatDTO;
+
 
 }

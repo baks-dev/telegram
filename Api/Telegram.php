@@ -18,7 +18,9 @@
 
 namespace BaksDev\Telegram\Api;
 
+use App\Kernel;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
+use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
 use BaksDev\Telegram\Messenger\TelegramMessage;
 use BaksDev\Telegram\Messenger\TelegramSender;
 use InvalidArgumentException;
@@ -28,10 +30,15 @@ abstract class Telegram
     private ?MessageDispatchInterface $messageDispatch;
 
     protected string|int|null $chanel = null;
+    private GetTelegramBotSettingsInterface $telegramBotSettings;
 
-    public function __construct(MessageDispatchInterface $messageDispatch = null,)
+    public function __construct(
+        GetTelegramBotSettingsInterface $telegramBotSettings,
+        MessageDispatchInterface $messageDispatch = null,
+    )
     {
         $this->messageDispatch = $messageDispatch;
+        $this->telegramBotSettings = $telegramBotSettings;
     }
 
 
@@ -73,9 +80,21 @@ abstract class Telegram
 
     public function send(bool $async = false): bool|array|null
     {
+        if(Kernel::isTestEnvironment())
+        {
+            return null;
+        }
+
         if($this->token === null)
         {
-            throw new InvalidArgumentException('Не указан токен авторизации Telegram');
+            $settings = $this->telegramBotSettings->settings();
+
+            if(!$settings)
+            {
+                throw new InvalidArgumentException('Не указан токен авторизации Telegram');
+            }
+
+            $this->token = $this->telegramBotSettings->settings()->getToken();
         }
 
         $TelegramMessage = new TelegramMessage(

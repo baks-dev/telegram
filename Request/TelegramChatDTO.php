@@ -27,13 +27,29 @@ namespace BaksDev\Telegram\Request;
 
 final class TelegramChatDTO
 {
+    /**
+     * Уникальный идентификатор этого чата.
+     * Это число может иметь более 32 значащих битов, и в некоторых языках программирования могут возникнуть трудности или неявные дефекты при его интерпретации.
+     * Но он имеет не более 52 значащих битов, поэтому 64-битное целое число со знаком или тип с плавающей запятой двойной точности безопасны для хранения этого идентификатора.
+     */
     private int $id;
 
+    /**
+     * Тип чата, может быть “private”, “group”, “supergroup” или “channel”
+     */
     private string $type;
 
-    private string $first_name;
+    /**
+     * @note Optional.
+     * Имя собеседника в приватном чате
+     */
+    private ?string $first_name = null;
 
-    private string $last_name;
+    /**
+     * @note  Optional.
+     * Фамилия собеседника в приватном чате
+     */
+    private ?string $last_name = null;
 
     private string $username;
 

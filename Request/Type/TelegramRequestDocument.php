@@ -25,41 +25,18 @@ declare(strict_types=1);
 
 namespace BaksDev\Telegram\Request\Type;
 
-use BaksDev\Telegram\Request\AbstractTelegramResponse;
+use BaksDev\Telegram\Request\AbstractTelegramRequest;
 use BaksDev\Telegram\Request\TelegramChatDTO;
 use BaksDev\Telegram\Request\TelegramUserDTO;
-use BaksDev\Telegram\Request\TelegramResponseInterface;
+use BaksDev\Telegram\Request\TelegramRequestInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see TelegramProto */
-final class TelegramRequestProtoDTO extends AbstractTelegramResponse
+/**
+ * Сообщение — общий файл, информация о файле
+ * @see https://core.telegram.org/bots/api#document
+ */
+final class TelegramRequestDocument extends AbstractTelegramRequest
 {
 
-//    private TelegramUserDTO $user;
-//
-//    private TelegramChatDTO $chat;
-//
-//
-//    public function __construct(TelegramUserDTO $user, TelegramChatDTO $chat) {
-//
-//        $this->user = $user;
-//        $this->chat = $chat;
-//    }
-//
-//    /**
-//     * User
-//     */
-//    public function getUser(): TelegramUserDTO
-//    {
-//        return $this->user;
-//    }
-//
-//    /**
-//     * Chat
-//     */
-//    public function getChat(): TelegramChatDTO
-//    {
-//        return $this->chat;
-//    }
 
 }

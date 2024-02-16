@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2023.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,34 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Request\Type;
+namespace BaksDev\Telegram\Controller\Tests;
 
-use BaksDev\Telegram\Request\AbstractTelegramResponse;
-use BaksDev\Telegram\Request\TelegramChatDTO;
-use BaksDev\Telegram\Request\TelegramUserDTO;
-use BaksDev\Telegram\Request\TelegramResponseInterface;
-use Symfony\Component\Validator\Constraints as Assert;
+use BaksDev\Core\Controller\AbstractController;
+use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
+use BaksDev\Telegram\Request\TelegramRequest;
+use BaksDev\Telegram\Request\Type\TelegramRequestPhoto;
+use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Annotation\Route;
 
-/** @see TelegramMessage */
-final class TelegramRequestMessageDTO  extends AbstractTelegramResponse
+#[AsController]
+#[RoleSecurity('ROLE_USER')]
+final class TestPhotoController extends AbstractController
 {
+    #[Route('/test/telegram/request/photo', name: 'test.telegram.request.photo', methods: ['POST'])]
+    public function __invoke(
+        TelegramRequest $request
+    ): Response
+    {
+        $TelegramRequest = $request->request();
 
+        if(!$TelegramRequest instanceof TelegramRequestPhoto)
+        {
+            throw new InvalidArgumentException('Invalid Telegram Request Photo');
+        }
 
-
-
+        return new JsonResponse(['success']);
+    }
 }

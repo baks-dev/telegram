@@ -25,13 +25,20 @@ declare(strict_types=1);
 
 namespace BaksDev\Telegram\Request;
 
-abstract class AbstractTelegramResponse implements TelegramResponseInterface
+use BaksDev\Core\Type\Locale\Locale;
+use BaksDev\Core\Type\Locale\Locales\LocaleDisable;
+use BaksDev\Core\Type\Locale\Locales\Ru;
+
+abstract class AbstractTelegramRequest implements TelegramRequestInterface
 {
     /** Идентификатор сообщения */
     private int $id;
 
     /** Идентификатор предыдущего сообщения */
     private ?int $last = null;
+
+    /** Идентификатор предыдущего системного сообщения */
+    private ?int $system = null;
 
     /** Уникальный идентификатор обновления */
     private int $update;
@@ -42,17 +49,23 @@ abstract class AbstractTelegramResponse implements TelegramResponseInterface
     /** Текст сообщения */
     private string $text;
 
+    /** Локаль */
+    private Locale $locale;
+
+
     private TelegramUserDTO $user;
 
     private TelegramChatDTO $chat;
 
 
-    public function __construct(TelegramUserDTO $user, TelegramChatDTO $chat) {
+    public function __construct(TelegramUserDTO $user, TelegramChatDTO $chat)
+    {
+        /** По умолчанию Locale Ru */
+        $this->locale = new Locale(Ru::class);
 
         $this->user = $user;
         $this->chat = $chat;
     }
-
 
     /**
      * Дата
@@ -125,6 +138,26 @@ abstract class AbstractTelegramResponse implements TelegramResponseInterface
         return $this;
     }
 
+    /**
+     * Locale
+     */
+    public function getLocale(): Locale
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(mixed $locale): self
+    {
+        $locale = new Locale($locale);
+
+        if(!$locale->getLocal() instanceof LocaleDisable)
+        {
+            $this->locale = $locale;
+        }
+
+        return $this;
+    }
+
 
     /**
      * User
@@ -152,4 +185,17 @@ abstract class AbstractTelegramResponse implements TelegramResponseInterface
         return $this->chat->getId();
     }
 
+    /**
+     * System
+     */
+    public function getSystem(): ?int
+    {
+        return $this->system;
+    }
+
+    public function setSystem(?int $system): self
+    {
+        $this->system = $system;
+        return $this;
+    }
 }

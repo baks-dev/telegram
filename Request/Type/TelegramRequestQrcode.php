@@ -31,46 +31,8 @@ use BaksDev\Telegram\Request\TelegramUserDTO;
 use BaksDev\Telegram\Request\TelegramRequestInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * Новый входящий запрос обратного вызова
- * @see https://core.telegram.org/bots/api#callbackquery
- */
-final class TelegramRequestCallback  extends AbstractTelegramRequest
+/** @see TelegramProto */
+final class TelegramRequestQrcode extends AbstractTelegramRequest
 {
-    /**
-     * Действие
-     */
-    private string $call;
 
-    /** Идентификатор, переданный через разделитель «|» */
-    private ?string $identifier = null;
-
-    /**
-     * Call
-     */
-    public function getCall(): string
-    {
-        return $this->call;
-    }
-
-    public function setCall(string $call): self
-    {
-        $this->call = $call;
-        return $this;
-    }
-
-
-    /**
-     * Identifier
-     */
-    public function getIdentifier(): ?string
-    {
-        return $this->identifier;
-    }
-
-    public function setIdentifier(?string $identifier): self
-    {
-        $this->identifier = $identifier;
-        return $this;
-    }
 }

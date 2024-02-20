@@ -26,18 +26,23 @@ declare(strict_types=1);
 namespace BaksDev\Telegram\Request;
 
 use BaksDev\Core\Cache\AppCacheInterface;
+use BaksDev\Telegram\Api\TelegramGetFile;
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
+use BaksDev\Telegram\Request\Type\Photo\TelegramRequestPhotoFile;
 use BaksDev\Telegram\Request\Type\TelegramRequestAudio;
 use BaksDev\Telegram\Request\Type\TelegramRequestCallback;
 use BaksDev\Telegram\Request\Type\TelegramRequestDocument;
+use BaksDev\Telegram\Request\Type\TelegramRequestIdentifier;
 use BaksDev\Telegram\Request\Type\TelegramRequestLocation;
 use BaksDev\Telegram\Request\Type\TelegramRequestMessage;
-use BaksDev\Telegram\Request\Type\TelegramRequestPhoto;
+use BaksDev\Telegram\Request\Type\Photo\TelegramRequestPhoto;
+use BaksDev\Telegram\Request\Type\TelegramRequestQrcode;
 use BaksDev\Telegram\Request\Type\TelegramRequestVideo;
 use DateInterval;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
+use Zxing\QrReader;
 
 final class TelegramRequest
 {
@@ -54,17 +59,21 @@ final class TelegramRequest
 
     private GetTelegramBotSettingsInterface $telegramBotSettings;
 
+    private TelegramGetFile $telegramGetFile;
+
     public function __construct(
         RequestStack $requestStack,
         LoggerInterface $telegramLogger,
         AppCacheInterface $appCache,
-        GetTelegramBotSettingsInterface $telegramBotSettings
+        GetTelegramBotSettingsInterface $telegramBotSettings,
+        TelegramGetFile $telegramGetFile,
     )
     {
         $this->requestStack = $requestStack;
         $this->cache = $appCache->init('telegram'); // new ApcuAdapter('telegram');
         $this->logger = $telegramLogger;
         $this->telegramBotSettings = $telegramBotSettings;
+        $this->telegramGetFile = $telegramGetFile;
     }
 
     public function request(): ?TelegramRequestInterface
@@ -98,18 +107,19 @@ final class TelegramRequest
 
         $this->request = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
 
-        if(!property_exists($this->request, 'message'))
-        {
-            $this->telegramRequest = null;
-            return null;
-        }
 
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
         {
             return $this->responseCallback();
         }
 
-        return match (true)
+        if(!property_exists($this->request, 'message'))
+        {
+            $this->telegramRequest = null;
+            return null;
+        }
+
+        $TelegramRequest = match (true)
         {
             property_exists($this->request->message, 'photo') && !empty($this->request->message->photo) => $this->responsePhoto(),
             property_exists($this->request->message, 'audio') && !empty($this->request->message->audio) => $this->responseAudio(),
@@ -118,12 +128,94 @@ final class TelegramRequest
             property_exists($this->request->message, 'location') && !empty($this->request->message->location) => $this->responseLocation(),
             default => $this->responseMessage()
         };
-    }
 
+        if(!$TelegramRequest)
+        {
+            return null;
+        }
+
+        $message = $this->request->message;
+
+        $TelegramRequest->setUpdate($this->request->update_id);
+
+        /** Присваиваем идентификатор предыдущего сообщения */
+        $lastItem = $this->cache->getItem('last-'.$TelegramRequest->getUserId());
+        $TelegramRequest->setLast((int) $lastItem->get());
+
+        /** Присваиваем идентификатор системного сообщения */
+        $systemItem = $this->cache->getItem('system-'.$TelegramRequest->getChatId());
+        $TelegramRequest->setSystem((int) $systemItem->get());
+
+        if(property_exists($message, 'message_id'))
+        {
+            $TelegramRequest->setId($message->message_id);
+        }
+
+        if(property_exists($message, 'date'))
+        {
+            $TelegramRequest->setDate($message->date);
+        }
+
+        if(property_exists($message, 'text'))
+        {
+            $TelegramRequest->setText($message->text);
+        }
+
+        if(property_exists($message, 'language_code'))
+        {
+            $TelegramRequest->setLocale($message->language_code);
+        }
+
+        /** Сохраняем в кеш идентификатор текущего сообщения для последующего присвоения */
+        $lastItem->set($message->message_id);
+        $lastItem->expiresAfter(DateInterval::createFromDateString('1 day'));
+        $this->cache->save($lastItem);
+
+        return $TelegramRequest;
+    }
 
     private function responseCallback(): ?TelegramRequestCallback
     {
         $TelegramRequestCallback = new TelegramRequestCallback($this->getUser(), $this->getChat());
+
+        $query = $this->request->callback_query;
+
+        if($query->data)
+        {
+            $calls = explode('|', $query->data, 2);
+            $TelegramRequestCallback->setCall(current($calls));
+
+            if(isset($calls[1]))
+            {
+                $TelegramRequestCallback->setIdentifier(end($calls));
+            }
+        }
+
+        if(property_exists($query, 'id'))
+        {
+            $TelegramRequestCallback->setId((int) $query->id);
+        }
+
+        if(property_exists($query, 'date'))
+        {
+            $TelegramRequestCallback->setDate($query->date);
+        }
+
+        if(property_exists($query, 'text'))
+        {
+            $TelegramRequestCallback->setText($query->text);
+        }
+
+
+        $TelegramRequestCallback->setUpdate($this->request->update_id);
+
+        /** Присваиваем идентификатор предыдущего сообщения */
+        $lastItem = $this->cache->getItem('last-'.$TelegramRequestCallback->getUserId());
+        $TelegramRequestCallback->setLast((int) $lastItem->get());
+
+        /** Присваиваем идентификатор системного сообщения */
+        $systemItem = $this->cache->getItem('system-'.$TelegramRequestCallback->getChatId());
+        $TelegramRequestCallback->setSystem((int) $systemItem->get());
 
         return $TelegramRequestCallback;
     }
@@ -156,53 +248,84 @@ final class TelegramRequest
         return $this->telegramRequest = $TelegramRequestLocation;
     }
 
-    private function responsePhoto(): ?TelegramRequestPhoto
+    private function responsePhoto(): TelegramRequestIdentifier|TelegramRequestPhoto|TelegramRequestQrcode|null
     {
         $TelegramRequestPhoto = new TelegramRequestPhoto($this->getUser(), $this->getChat());
+
+        /** Делаем пред загрузку фото */
+
+        $photos = $this->request->message->photo;
+
+        /** Скачиваем по порядку фото для анализа  */
+        foreach($photos as $photo)
+        {
+            /* скачиваем во временный файл фото по идентификатору */
+            $file = $this->telegramGetFile
+                ->file($photo->file_id)
+                ->send(false);
+
+            /** Проверяем, является ли фото QR-кодом с идентификатором */
+
+            $qrcode = new QrReader($file['tmp_file']);
+            $QRdata = (string) $qrcode->text(); // декодированный текст из QR-кода
+
+            if($QRdata)
+            {
+                /** Удаляем временный файл после анализа */
+                unlink($file['tmp_file']);
+
+                /** Если QR является идентификатором - присваиваем TelegramRequestIdentifier */
+                if($QRdata && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $QRdata))
+                {
+                    $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
+                    $TelegramRequestIdentifier->setIdentifier($QRdata);
+
+                    return $this->telegramRequest = $TelegramRequestIdentifier;
+                }
+
+                $TelegramRequestQrcode = new TelegramRequestQrcode($this->getUser(), $this->getChat());
+                return $this->telegramRequest = $TelegramRequestQrcode->setText($QRdata);
+
+            }
+
+            /**
+             * Создаем TelegramRequestPhotoFile
+             */
+            $TelegramRequestPhotoFile = new TelegramRequestPhotoFile();
+            $TelegramRequestPhotoFile
+                ->setId($photo->file_id)
+                ->setUnique($photo->file_unique_id)
+                ->setWidth($photo->width)
+                ->setHeight($photo->height)
+                ->setPath($file['tmp_file']);
+
+            if(property_exists($photo, 'file_size'))
+            {
+                $TelegramRequestPhotoFile->setSize($photo->file_size);
+            }
+
+            $TelegramRequestPhoto->addPhoto($TelegramRequestPhotoFile);
+        }
+
 
         return $this->telegramRequest = $TelegramRequestPhoto;
     }
 
 
-    private function responseMessage(): ?TelegramRequestMessage
+    private function responseMessage(): TelegramRequestMessage|TelegramRequestIdentifier|null
     {
-        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat());
-
         $message = $this->request->message;
 
-        $TelegramRequestMessage->setUpdate($this->request->update_id);
-
-        /** Присваиваем идентификатор предыдущего сообщения */
-        $lastItem = $this->cache->getItem('last-'.$TelegramRequestMessage->getUserId());
-        $TelegramRequestMessage->setLast((int) $lastItem->get());
-
-        $systemItem = $this->cache->getItem('system-'.$TelegramRequestMessage->getChatId());
-        $TelegramRequestMessage->setSystem((int) $systemItem->get());
-
-        if(property_exists($message, 'message_id'))
+        /** Если текст является идентификатором - присваиваем TelegramRequestIdentifier */
+        if($message->text && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $message->text))
         {
-            $TelegramRequestMessage->setId($message->message_id);
+            $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
+            $TelegramRequestIdentifier->setIdentifier($message->text);
+
+            return $this->telegramRequest = $TelegramRequestIdentifier;
         }
 
-        if(property_exists($message, 'date'))
-        {
-            $TelegramRequestMessage->setDate($message->date);
-        }
-
-        if(property_exists($message, 'text'))
-        {
-            $TelegramRequestMessage->setText($message->text);
-        }
-
-        if(property_exists($message, 'language_code'))
-        {
-            $TelegramRequestMessage->setLocale($message->language_code);
-        }
-
-        /** Сохраняем идентификатор текущего сообщения */
-        $lastItem->set($message->message_id);
-        $lastItem->expiresAfter(DateInterval::createFromDateString('1 day'));
-        $this->cache->save($lastItem);
+        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat());
 
         return $this->telegramRequest = $TelegramRequestMessage;
     }
@@ -212,7 +335,21 @@ final class TelegramRequest
     {
         $user = new TelegramUserDTO();
 
-        $data = $this->request->message->from;
+        if($this->request->message)
+        {
+            $data = $this->request->message->from;
+        }
+
+        if($this->request->callback_query)
+        {
+            $data = $this->request->callback_query->message->from;
+        }
+
+        if(!$data)
+        {
+            return $user;
+        }
+
 
         $user
             ->setId($data->id)
@@ -253,7 +390,17 @@ final class TelegramRequest
     {
         $chat = new TelegramChatDTO();
 
-        $data = $this->request->message->chat;
+        //$data = $this->request->message->chat;
+
+        if($this->request->message)
+        {
+            $data = $this->request->message->chat;
+        }
+
+        if($this->request->callback_query)
+        {
+            $data = $this->request->callback_query->message->chat;
+        }
 
         $chat
             ->setId($data->id)

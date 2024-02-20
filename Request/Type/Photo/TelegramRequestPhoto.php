@@ -23,54 +23,42 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Request\Type;
+namespace BaksDev\Telegram\Request\Type\Photo;
 
 use BaksDev\Telegram\Request\AbstractTelegramRequest;
 use BaksDev\Telegram\Request\TelegramChatDTO;
 use BaksDev\Telegram\Request\TelegramUserDTO;
 use BaksDev\Telegram\Request\TelegramRequestInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * Новый входящий запрос обратного вызова
- * @see https://core.telegram.org/bots/api#callbackquery
- */
-final class TelegramRequestCallback  extends AbstractTelegramRequest
+/** @see TelegramProto */
+final class TelegramRequestPhoto extends AbstractTelegramRequest
 {
     /**
-     * Действие
+     * @note Optional.
+     * Сообщение представляет собой фотографию, доступные размеры фотографии.
      */
-    private string $call;
-
-    /** Идентификатор, переданный через разделитель «|» */
-    private ?string $identifier = null;
+    private ?ArrayCollection $photos = null;
 
     /**
-     * Call
+     * Photos
      */
-    public function getCall(): string
+    public function getPhotos(): ArrayCollection
     {
-        return $this->call;
+        return $this->photos;
     }
 
-    public function setCall(string $call): self
+    public function addPhoto(TelegramRequestPhotoFile $photo): self
     {
-        $this->call = $call;
+        if($this->photos === null)
+        {
+            $this->photos = new ArrayCollection();
+        }
+
+        $this->photos->add($photo);
+
         return $this;
     }
 
-
-    /**
-     * Identifier
-     */
-    public function getIdentifier(): ?string
-    {
-        return $this->identifier;
-    }
-
-    public function setIdentifier(?string $identifier): self
-    {
-        $this->identifier = $identifier;
-        return $this;
-    }
 }

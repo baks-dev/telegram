@@ -39,6 +39,11 @@ final class TelegramSendMessage extends Telegram
      */
     private ?string $markup = null;
 
+    /**
+     * Идентификатор предыдущего сообщения для удаления
+     */
+    private array $delete = [];
+
 
     public function message(string $message): self
     {
@@ -66,6 +71,18 @@ final class TelegramSendMessage extends Telegram
         return 'sendMessage';
     }
 
+    public function delete(int|array $delete): self
+    {
+        if(is_array($delete))
+        {
+            $this->delete = $delete;
+            return $this;
+        }
+
+        $this->delete = [$delete];
+        return $this;
+    }
+
     function option(): ?array
     {
         if($this->chanel === null)
@@ -73,9 +90,7 @@ final class TelegramSendMessage extends Telegram
             throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
         }
 
-
         $option['chat_id'] = $this->chanel;
-
 
         if($this->message === null)
         {
@@ -91,7 +106,13 @@ final class TelegramSendMessage extends Telegram
 
         $option['parse_mode'] = 'html';
 
+        if($this->delete)
+        {
+            $option['delete'] = $this->delete;
+        }
+
         return $option;
     }
+
 
 }

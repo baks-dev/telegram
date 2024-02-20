@@ -32,7 +32,23 @@ use BaksDev\Telegram\Request\TelegramRequestInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see TelegramProto */
-final class TelegramRequestPhoto extends AbstractTelegramRequest
+final class TelegramRequestIdentifier extends AbstractTelegramRequest
 {
 
+    /** Идентификатор UID */
+    private string $identifier;
+
+    /**
+     * Identifier
+     */
+    public function getIdentifier(): string
+    {
+        return $this->identifier;
+    }
+
+    public function setIdentifier(string $identifier): self
+    {
+        $this->identifier = $identifier;
+        return $this;
+    }
 }

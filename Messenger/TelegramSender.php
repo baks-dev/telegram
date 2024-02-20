@@ -25,14 +25,23 @@ declare(strict_types=1);
 
 namespace BaksDev\Telegram\Messenger;
 
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Telegram\Exception\TelegramRequestException;
+use Exception;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 #[AsMessageHandler]
 final class TelegramSender
 {
+    private CacheInterface $cache;
+
+    public function __construct(AppCacheInterface $appCache)
+    {
+        $this->cache = $appCache->init('telegram');
+    }
 
     private ?string $token;
 
@@ -63,7 +72,39 @@ final class TelegramSender
             return $this->saveFile($response);
         }
 
-        return $response->toArray();
+        $result = $response->toArray();
+
+        if($message->getMethod() === 'sendMessage')
+        {
+            $option = $message->getOption();
+
+            /** Сохраняем идентификатор системного сообщения */
+            if(isset($result['result']['message_id']))
+            {
+                $systemItem = $this->cache->getItem('system-'.$option['chat_id']);
+                $systemItem->set($result['result']['message_id']);
+                $this->cache->save($systemItem);
+            }
+
+            /** Если указано удаляем сообщение */
+            if(!empty($option['delete']))
+            {
+                foreach($option['delete'] as $delete)
+                {
+                    try
+                    {
+                        $HttpClient->request(
+                            'POST', 'deleteMessage', ['json' => ['message_id' => $delete, 'chat_id' => $option['chat_id']]]
+                        );
+                    }
+                    catch(Exception)
+                    {
+                    }
+                }
+            }
+        }
+
+        return  $result;
     }
 
 

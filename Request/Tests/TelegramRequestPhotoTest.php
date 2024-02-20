@@ -98,7 +98,6 @@ final class TelegramRequestPhotoTest extends WebTestCase
             ];
 
 
-
             $client->jsonRequest('POST', self::URL, $data);
 
             //dd(self::class);

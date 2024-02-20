@@ -19,6 +19,7 @@
 namespace BaksDev\Telegram\Api;
 
 use App\Kernel;
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
 use BaksDev\Telegram\Messenger\TelegramMessage;
@@ -31,14 +32,17 @@ abstract class Telegram
 
     protected string|int|null $chanel = null;
     private GetTelegramBotSettingsInterface $telegramBotSettings;
+    private AppCacheInterface $cache;
 
     public function __construct(
+        AppCacheInterface $cache,
         GetTelegramBotSettingsInterface $telegramBotSettings,
         MessageDispatchInterface $messageDispatch = null,
     )
     {
         $this->messageDispatch = $messageDispatch;
         $this->telegramBotSettings = $telegramBotSettings;
+        $this->cache = $cache;
     }
 
 
@@ -109,7 +113,7 @@ abstract class Telegram
             return true;
         }
 
-        return (new TelegramSender())($TelegramMessage) ?: false;
+        return (new TelegramSender($this->cache))($TelegramMessage) ?: false;
     }
 
 }

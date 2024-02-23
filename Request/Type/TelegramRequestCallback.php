@@ -46,7 +46,7 @@ final class TelegramRequestCallback  extends AbstractTelegramRequest
     private ?string $identifier = null;
 
     /**
-     * Call
+     *  Действие
      */
     public function getCall(): string
     {

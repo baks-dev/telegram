@@ -193,7 +193,7 @@ final class TelegramRequest
 
         if(property_exists($query, 'id'))
         {
-            $TelegramRequestCallback->setId((int) $query->id);
+            $TelegramRequestCallback->setId((int) $query->message->message_id);
         }
 
         if(property_exists($query, 'date'))

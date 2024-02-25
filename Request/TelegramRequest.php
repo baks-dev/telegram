@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Telegram\Request;
 
 use BaksDev\Core\Cache\AppCacheInterface;
+use BaksDev\Telegram\Api\TelegramChatAction;
 use BaksDev\Telegram\Api\TelegramGetFile;
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
 use BaksDev\Telegram\Request\Type\Photo\TelegramRequestPhotoFile;
@@ -60,6 +61,7 @@ final class TelegramRequest
     private GetTelegramBotSettingsInterface $telegramBotSettings;
 
     private TelegramGetFile $telegramGetFile;
+    private TelegramChatAction $telegramChatAction;
 
     public function __construct(
         RequestStack $requestStack,
@@ -67,6 +69,7 @@ final class TelegramRequest
         AppCacheInterface $appCache,
         GetTelegramBotSettingsInterface $telegramBotSettings,
         TelegramGetFile $telegramGetFile,
+        TelegramChatAction $telegramChatAction
     )
     {
         $this->requestStack = $requestStack;
@@ -74,6 +77,7 @@ final class TelegramRequest
         $this->logger = $telegramLogger;
         $this->telegramBotSettings = $telegramBotSettings;
         $this->telegramGetFile = $telegramGetFile;
+        $this->telegramChatAction = $telegramChatAction;
     }
 
     public function request(): ?TelegramRequestInterface
@@ -101,6 +105,7 @@ final class TelegramRequest
         {
             return $this->telegramRequest;
         }
+
 
         $data = $this->requestStack->getCurrentRequest()?->getContent();
         $this->logger->debug($data);
@@ -133,6 +138,9 @@ final class TelegramRequest
         {
             return null;
         }
+
+        /** Активируем статус набора текста */
+        $this->telegramChatAction->chanel($TelegramRequest->getChatId())->send();
 
         $message = $this->request->message;
 
@@ -216,6 +224,7 @@ final class TelegramRequest
         /** Присваиваем идентификатор системного сообщения */
         $systemItem = $this->cache->getItem('system-'.$TelegramRequestCallback->getChatId());
         $TelegramRequestCallback->setSystem((int) $systemItem->get());
+
 
         return $TelegramRequestCallback;
     }

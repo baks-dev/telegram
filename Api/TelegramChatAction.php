@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2024.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,34 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Telegram\Request\Telegram;
+namespace BaksDev\Telegram\Api;
 
-final class TelegramProtoDTO
+
+use InvalidArgumentException;
+
+/**
+ * Используйте этот метод, когда вам нужно сообщить пользователю, что что-то происходит на стороне бота.
+ * Статус устанавливается на 5 секунд или меньше (при поступлении сообщения от вашего бота клиенты Telegram очищают его статус набора).
+ * Возвращает True в случае успеха.
+ * @see https://core.telegram.org/bots/api#sendchataction
+ */
+final class TelegramChatAction extends Telegram
 {
-    public string $file_id;
-    public string $file_unique_id;
-    public int $width;
-    public int $height;
-    public int $file_size;
+    protected function method(): string
+    {
+        return 'sendChatAction';
+    }
 
+    function option(): ?array
+    {
+        if($this->chanel === null)
+        {
+            throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
+        }
+
+        $option['chat_id'] = $this->chanel;
+        $option['action'] = 'typing';
+
+        return $option;
+    }
 }

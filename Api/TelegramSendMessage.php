@@ -18,6 +18,7 @@
 
 namespace BaksDev\Telegram\Api;
 
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -97,6 +98,25 @@ final class TelegramSendMessage extends Telegram
             throw new InvalidArgumentException('Не указан текст сообщения для отправки в Telegram');
         }
 
+
+        $now = new DateTimeImmutable();
+
+        /** Сегодня с 00:00 до 8:00 */
+        $startNightsTime = DateTimeImmutable::createFromFormat('H:i', '00:00');
+        $endNightsTime = DateTimeImmutable::createFromFormat('H:i', '08:00');
+
+        /** Сегодня с 20:00 до 00:00 */
+        $startEveningTime = DateTimeImmutable::createFromFormat('H:i', '20:00');
+        $endEveningTime = DateTimeImmutable::createFromFormat('H:i', '00:00');
+
+        /* В ночное время (20:00 - 8:00) - отправляем сообщение без звука */
+        if(($now > $startNightsTime && $now < $endNightsTime) || ($now > $startEveningTime && $now < $endEveningTime))
+        {
+            $option['disable_notification'] = true;
+        }
+
+        //$this->message = $now > $startTime || $now < $endTime  ? 'YES' : 'NO';
+
         $option['text'] = $this->message;
 
         if($this->markup)
@@ -110,6 +130,7 @@ final class TelegramSendMessage extends Telegram
         {
             $option['delete'] = $this->delete;
         }
+
 
         return $option;
     }

@@ -40,6 +40,8 @@ use BaksDev\Telegram\Request\Type\Photo\TelegramRequestPhoto;
 use BaksDev\Telegram\Request\Type\TelegramRequestQrcode;
 use BaksDev\Telegram\Request\Type\TelegramRequestVideo;
 use DateInterval;
+use JsonException;
+use Prophecy\Exception\Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -88,7 +90,7 @@ final class TelegramRequest
         if(!$secretToken)
         {
             $this->telegramRequest = null;
-            $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token');
+            $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token', [__FILE__.':'.__LINE__]);
             return null;
         }
 
@@ -97,7 +99,7 @@ final class TelegramRequest
         if(!$settings->equalsSecret($secretToken))
         {
             $this->telegramRequest = null;
-            $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token');
+            $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token', [__FILE__.':'.__LINE__]);
             return null;
         }
 
@@ -108,9 +110,15 @@ final class TelegramRequest
 
 
         $data = $this->requestStack->getCurrentRequest()?->getContent();
-        $this->logger->debug($data);
 
-        $this->request = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+        try
+        {
+            $this->request = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+        }
+        catch(JsonException)
+        {
+            return null;
+        }
 
 
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
@@ -120,6 +128,7 @@ final class TelegramRequest
 
         if(!property_exists($this->request, 'message'))
         {
+            $this->logger->critical(sprintf('Запрос невозможно распознать: %s', $data), [__FILE__.':'.__LINE__]);
             $this->telegramRequest = null;
             return null;
         }
@@ -138,6 +147,8 @@ final class TelegramRequest
         {
             return null;
         }
+
+        $this->logger->debug($data, [__FILE__.':'.__LINE__]);
 
         /** Активируем статус набора текста */
         $this->telegramChatAction->chanel($TelegramRequest->getChatId())->send();
@@ -342,23 +353,24 @@ final class TelegramRequest
 
     public function getUser(): TelegramUserDTO
     {
-        $user = new TelegramUserDTO();
+        $data = null;
 
-        if($this->request->message)
+        if(property_exists($this->request, 'message'))
         {
             $data = $this->request->message->from;
         }
 
-        if($this->request->callback_query)
+        if(property_exists($this->request, 'callback_query'))
         {
             $data = $this->request->callback_query->message->from;
         }
+
+        $user = new TelegramUserDTO();
 
         if(!$data)
         {
             return $user;
         }
-
 
         $user
             ->setId($data->id)
@@ -397,24 +409,30 @@ final class TelegramRequest
 
     public function getChat(): TelegramChatDTO
     {
-        $chat = new TelegramChatDTO();
 
-        //$data = $this->request->message->chat;
+        $data = null;
 
-        if($this->request->message)
+        if(property_exists($this->request, 'message'))
         {
             $data = $this->request->message->chat;
         }
 
-        if($this->request->callback_query)
+        if(property_exists($this->request, 'callback_query'))
         {
             $data = $this->request->callback_query->message->chat;
+        }
+
+
+        $chat = new TelegramChatDTO();
+
+        if(!$data)
+        {
+            return $chat;
         }
 
         $chat
             ->setId($data->id)
             ->setType($data->type);
-
 
         /**
          * @note Optional.

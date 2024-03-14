@@ -44,7 +44,9 @@ return static function(FrameworkConfig $framework) {
     ;
 
     $messenger->transport('failed-telegram')
-        ->dsn('%env(MESSENGER_TRANSPORT_DSN)%');
+        ->dsn('%env(MESSENGER_TRANSPORT_DSN)%')
+        ->options(['queue_name' => 'failed-telegram'])
+    ;
 
 };
 

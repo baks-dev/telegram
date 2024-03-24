@@ -28,6 +28,7 @@ namespace BaksDev\Telegram\Messenger;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Telegram\Exception\TelegramRequestException;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -37,10 +38,15 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 final class TelegramSender
 {
     private CacheInterface $cache;
+    private LoggerInterface $logger;
 
-    public function __construct(AppCacheInterface $appCache)
+    public function __construct(
+        AppCacheInterface $appCache,
+        LoggerInterface $telegramLogger
+    )
     {
         $this->cache = $appCache->init('telegram');
+        $this->logger = $telegramLogger;
     }
 
     private ?string $token;
@@ -64,7 +70,12 @@ final class TelegramSender
                 return [];
             }
 
-            throw new TelegramRequestException(code: $response->getStatusCode());
+            $this->logger->critical('Ошибка отправки сообщения', [
+                __FILE__.':'.__LINE__,
+                $message->getOption()
+            ]);
+
+            return [];
         }
 
         if($message->getMethod() === 'getFile')
@@ -91,6 +102,11 @@ final class TelegramSender
             {
                 foreach($option['delete'] as $delete)
                 {
+                    if(empty($delete))
+                    {
+                        continue;
+                    }
+
                     try
                     {
                         $HttpClient->request(
@@ -99,12 +115,13 @@ final class TelegramSender
                     }
                     catch(Exception)
                     {
+                        continue;
                     }
                 }
             }
         }
 
-        return  $result;
+        return $result;
     }
 
 

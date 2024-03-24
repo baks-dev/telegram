@@ -45,6 +45,7 @@ final class TelegramRequestCallback  extends AbstractTelegramRequest
     /** Идентификатор, переданный через разделитель «|» */
     private ?string $identifier = null;
 
+
     /**
      *  Действие
      */
@@ -55,6 +56,12 @@ final class TelegramRequestCallback  extends AbstractTelegramRequest
 
     public function setCall(string $call): self
     {
+        if($call === 'start')
+        {
+            $index = 'action-'.$this->getUserId();
+            $this->cache->deleteItem($index);
+        }
+
         $this->call = $call;
         return $this;
     }
@@ -73,4 +80,8 @@ final class TelegramRequestCallback  extends AbstractTelegramRequest
         $this->identifier = $identifier;
         return $this;
     }
+
+
+
+
 }

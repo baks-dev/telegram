@@ -18,7 +18,7 @@
 
 namespace BaksDev\Telegram\Request\Tests;
 
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use BaksDev\Users\User\Tests\TestUserAccount;
 use BaksDev\Wildberries\Products\Entity\Settings\WbProductSettings;
 use BaksDev\Wildberries\Products\Type\Barcode\Event\WbBarcodeEventUid;
@@ -43,8 +43,8 @@ final class TelegramRequestPhotoTest extends WebTestCase
         $client = static::createClient();
         $container = self::getContainer();
 
-        /** @var GetTelegramBotSettingsInterface $telegramBotSettings */
-        $telegramBotSettings = $container->get(GetTelegramBotSettingsInterface::class);
+        /** @var TelegramBotSettingsInterface $telegramBotSettings */
+        $telegramBotSettings = $container->get(TelegramBotSettingsInterface::class);
         $telegramBotSettings->settings();
 
         foreach(TestUserAccount::getDevice() as $device)

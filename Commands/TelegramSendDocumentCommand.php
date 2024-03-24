@@ -29,7 +29,7 @@ namespace BaksDev\Telegram\Commands;
 use BaksDev\Telegram\Api\TelegramSendDocument;
 use BaksDev\Telegram\Api\TelegramSendMessage;
 use BaksDev\Telegram\Api\TelegramSendVideo;
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -43,7 +43,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 )]
 class TelegramSendDocumentCommand extends Command
 {
-    private GetTelegramBotSettingsInterface $telegramBotSettings;
+    private TelegramBotSettingsInterface $telegramBotSettings;
     private string $TELEGRAM_NOTIFIER;
     private TelegramSendDocument $telegramSendDocument;
     private TelegramSendMessage $telegramSendMessage;
@@ -52,7 +52,7 @@ class TelegramSendDocumentCommand extends Command
     public function __construct(
         #[Autowire(env: 'TELEGRAM_NOTIFIER')] string $TELEGRAM_NOTIFIER,
         TelegramSendVideo $telegramSendVideo,
-        GetTelegramBotSettingsInterface $telegramBotSettings,
+        TelegramBotSettingsInterface $telegramBotSettings,
         TelegramSendDocument $telegramSendDocument,
         TelegramSendMessage $telegramSendMessage,
     )

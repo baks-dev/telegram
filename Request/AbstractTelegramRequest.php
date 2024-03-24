@@ -28,6 +28,9 @@ namespace BaksDev\Telegram\Request;
 use BaksDev\Core\Type\Locale\Locale;
 use BaksDev\Core\Type\Locale\Locales\LocaleDisable;
 use BaksDev\Core\Type\Locale\Locales\Ru;
+use DateInterval;
+use Psr\Cache\CacheItemInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 
 abstract class AbstractTelegramRequest implements TelegramRequestInterface
 {
@@ -52,19 +55,25 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
     /** Локаль */
     private Locale $locale;
 
+//    /** Действие, которое выполняется пользователем */
+//    private ?string $action = null;
+//
 
     private TelegramUserDTO $user;
 
     private TelegramChatDTO $chat;
 
+    protected CacheInterface $cache;
 
-    public function __construct(TelegramUserDTO $user, TelegramChatDTO $chat)
+
+    public function __construct(TelegramUserDTO $user, TelegramChatDTO $chat, CacheInterface $cache)
     {
         /** По умолчанию Locale Ru */
         $this->locale = new Locale(Ru::class);
 
         $this->user = $user;
         $this->chat = $chat;
+        $this->cache = $cache;
     }
 
     /**
@@ -106,6 +115,12 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
 
     public function setText(string $text): self
     {
+        if($text === '/start')
+        {
+            $index = 'action-'.$this->getUserId();
+            $this->cache->deleteItem($index);
+        }
+
         $this->text = $text;
         return $this;
     }
@@ -198,4 +213,39 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
         $this->system = $system;
         return $this;
     }
+
+    /**
+     * Действие, которое выполняется пользователем
+     */
+    public function getAction(): ?string
+    {
+        $index = 'action-'.$this->getUserId();
+
+        $actionItem = $this->cache->getItem($index);
+
+        if (!$actionItem->isHit()) {
+            return null;
+        }
+
+        return $actionItem->get();
+    }
+
+    public function setAction(?string $action): self
+    {
+        $index = 'action-'.$this->getUserId();
+
+        if(!$action)
+        {
+            $this->cache->deleteItem($index);
+        }
+
+        /** @var CacheItemInterface $actionItem */
+        $actionItem = $this->cache->getItem($index);
+        $actionItem->set($action);
+        $actionItem->expiresAfter(DateInterval::createFromDateString('1 day'));
+        $this->cache->save($actionItem);
+
+        return $this;
+    }
+
 }

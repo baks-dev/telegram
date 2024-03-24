@@ -21,28 +21,32 @@ namespace BaksDev\Telegram\Api;
 use App\Kernel;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\GetTelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use BaksDev\Telegram\Messenger\TelegramMessage;
 use BaksDev\Telegram\Messenger\TelegramSender;
 use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 
 abstract class Telegram
 {
     private ?MessageDispatchInterface $messageDispatch;
 
     protected string|int|null $chanel = null;
-    private GetTelegramBotSettingsInterface $telegramBotSettings;
+    private TelegramBotSettingsInterface $telegramBotSettings;
     private AppCacheInterface $cache;
+    private LoggerInterface $logger;
 
     public function __construct(
         AppCacheInterface $cache,
-        GetTelegramBotSettingsInterface $telegramBotSettings,
+        TelegramBotSettingsInterface $telegramBotSettings,
+        LoggerInterface $telegramLogger,
         MessageDispatchInterface $messageDispatch = null,
     )
     {
         $this->messageDispatch = $messageDispatch;
         $this->telegramBotSettings = $telegramBotSettings;
         $this->cache = $cache;
+        $this->logger = $telegramLogger;
     }
 
 
@@ -84,10 +88,10 @@ abstract class Telegram
 
     public function send(bool $async = false): bool|array|null
     {
-        if(Kernel::isTestEnvironment())
-        {
-            return null;
-        }
+        //        if(Kernel::isTestEnvironment())
+        //        {
+        //            return null;
+        //        }
 
         if($this->token === null)
         {
@@ -113,7 +117,7 @@ abstract class Telegram
             return true;
         }
 
-        return (new TelegramSender($this->cache))($TelegramMessage) ?: false;
+        return (new TelegramSender($this->cache, $this->logger))($TelegramMessage) ?: false;
     }
 
 }

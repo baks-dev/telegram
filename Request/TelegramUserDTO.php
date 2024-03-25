@@ -109,7 +109,7 @@ final class TelegramUserDTO
 
     public function setLastName(string|bool $last_name): self
     {
-        if($last_name)
+        if(is_string($last_name))
         {
             $this->last_name = $last_name;
         }

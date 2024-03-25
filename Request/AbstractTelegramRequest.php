@@ -50,7 +50,7 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
     private int $date;
 
     /** Текст сообщения */
-    private string $text;
+    private ?string $text = null;
 
     /** Локаль */
     private Locale $locale;
@@ -108,7 +108,7 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
     /**
      * Текст сообщения
      */
-    public function getText(): string
+    public function getText(): ?string
     {
         return $this->text;
     }

@@ -115,7 +115,7 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
 
     public function setText(string $text): self
     {
-        if($text === '/start')
+        if($text === '/menu')
         {
             $index = 'action-'.$this->getUserId();
             $this->cache->deleteItem($index);

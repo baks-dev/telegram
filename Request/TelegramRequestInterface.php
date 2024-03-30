@@ -27,6 +27,9 @@ use BaksDev\Core\Type\Locale\Locale;
 
 interface TelegramRequestInterface
 {
+
+    public function getId(): int;
+
     /**
      * User
      */

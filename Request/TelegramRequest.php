@@ -86,6 +86,7 @@ final class TelegramRequest
 
     public function request(?Request $req = null): ?TelegramRequestInterface
     {
+
         /** @var Request $Request */
         $Request = $req ?: $this->requestStack->getCurrentRequest();
 
@@ -93,25 +94,22 @@ final class TelegramRequest
 
         if(!$secretToken)
         {
-            $this->telegramRequest = null;
             $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token', [__FILE__.':'.__LINE__]);
-            return null;
+            return $this->telegramRequest = null;
         }
 
         $settings = $this->telegramBotSettings->settings();
 
         if(!$settings->equalsSecret($secretToken))
         {
-            $this->telegramRequest = null;
             $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token', [__FILE__.':'.__LINE__]);
-            return null;
+            return $this->telegramRequest = null;
         }
 
         if($this->telegramRequest)
         {
             return $this->telegramRequest;
         }
-
 
         $data = $Request->getContent();
 
@@ -121,7 +119,7 @@ final class TelegramRequest
         }
         catch(JsonException)
         {
-            return null;
+            return $this->telegramRequest = null;
         }
 
         $this->logger->debug($data, [__FILE__.':'.__LINE__]);
@@ -134,8 +132,7 @@ final class TelegramRequest
         if(!property_exists($this->request, 'message'))
         {
             $this->logger->critical(sprintf('Запрос невозможно распознать: %s', $data), [__FILE__.':'.__LINE__]);
-            $this->telegramRequest = null;
-            return null;
+            return $this->telegramRequest = null;
         }
 
         $TelegramRequest = match (true)
@@ -150,7 +147,7 @@ final class TelegramRequest
 
         if(!$TelegramRequest)
         {
-            return null;
+            $this->telegramRequest = null;
         }
 
         /** Активируем статус набора текста */
@@ -162,7 +159,8 @@ final class TelegramRequest
 
         /** Присваиваем идентификатор предыдущего сообщения */
         $lastItem = $this->cache->getItem('last-'.$TelegramRequest->getUserId());
-        $TelegramRequest->setLast((int) $lastItem->get());
+        $lastId = (int) $lastItem->get();
+        $TelegramRequest->setLast($lastId);
 
         /** Присваиваем идентификатор системного сообщения */
         $systemItem = $this->cache->getItem('system-'.$TelegramRequest->getChatId());
@@ -170,6 +168,12 @@ final class TelegramRequest
 
         if(property_exists($message, 'message_id'))
         {
+            if($message->message_id === $lastId)
+            {
+                $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [__FILE__.':'.__LINE__]);
+                return $this->telegramRequest = null;
+            }
+
             $TelegramRequest->setId($message->message_id);
         }
 
@@ -237,14 +241,27 @@ final class TelegramRequest
 
         /** Присваиваем идентификатор предыдущего сообщения */
         $lastItem = $this->cache->getItem('last-'.$TelegramRequestCallback->getUserId());
-        $TelegramRequestCallback->setLast((int) $lastItem->get());
+        $lastId = (int) $lastItem->get();
+
+        if($query->message->message_id === $lastId)
+        {
+            $this->logger->warning(sprintf('Дубликат запроса клика кнопки: %s', $query->data), [__FILE__.':'.__LINE__]);
+            return $this->telegramRequest = null;
+        }
+
+        $TelegramRequestCallback->setLast($lastId);
 
         /** Присваиваем идентификатор системного сообщения */
         $systemItem = $this->cache->getItem('system-'.$TelegramRequestCallback->getChatId());
         $TelegramRequestCallback->setSystem((int) $systemItem->get());
 
 
-        return $TelegramRequestCallback;
+        /** Сохраняем в кеш идентификатор текущего сообщения */
+        $lastItem->set($query->message->message_id);
+        $lastItem->expiresAfter(DateInterval::createFromDateString('1 day'));
+        $this->cache->save($lastItem);
+
+        return $this->telegramRequest = $TelegramRequestCallback;
     }
 
     private function responseVideo(): ?TelegramRequestVideo

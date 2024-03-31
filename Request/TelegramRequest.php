@@ -107,6 +107,8 @@ final class TelegramRequest
             return $this->telegramRequest = null;
         }
 
+
+
         if($this->telegramRequest)
         {
             return $this->telegramRequest;
@@ -127,7 +129,9 @@ final class TelegramRequest
 
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
         {
-            return $this->responseCallback();
+            $this->responseCallback();
+            $this->telegramChatAction->chanel($this->telegramRequest->getChatId())->send();
+            return $this->telegramRequest;
         }
 
         if(!property_exists($this->request, 'message'))
@@ -151,11 +155,9 @@ final class TelegramRequest
             $this->telegramRequest = null;
         }
 
-        /** Активируем статус набора текста */
-        $this->telegramChatAction->chanel($TelegramRequest->getChatId())->send();
+        $this->telegramChatAction->chanel($this->telegramRequest->getChatId())->send();
 
         $message = $this->request->message;
-
         $TelegramRequest->setUpdate($this->request->update_id);
 
         /** Присваиваем идентификатор предыдущего сообщения */
@@ -211,8 +213,7 @@ final class TelegramRequest
     {
         $TelegramRequestCallback = new TelegramRequestCallback(
             $this->getUser(),
-            $this->getChat(),
-            $this->cache
+            $this->getChat()
         );
 
         $query = $this->request->callback_query;
@@ -302,35 +303,35 @@ final class TelegramRequest
 
     private function responseVideo(): ?TelegramRequestVideo
     {
-        $TelegramRequestVideo = new TelegramRequestVideo($this->getUser(), $this->getChat(), $this->cache);
+        $TelegramRequestVideo = new TelegramRequestVideo($this->getUser(), $this->getChat());
 
         return $TelegramRequestVideo;
     }
 
     private function responseAudio(): ?TelegramRequestAudio
     {
-        $TelegramRequestAudio = new TelegramRequestAudio($this->getUser(), $this->getChat(), $this->cache);
+        $TelegramRequestAudio = new TelegramRequestAudio($this->getUser(), $this->getChat());
 
         return $this->telegramRequest = $TelegramRequestAudio;
     }
 
     private function responseDocument(): ?TelegramRequestDocument
     {
-        $TelegramRequestDocument = new TelegramRequestDocument($this->getUser(), $this->getChat(), $this->cache);
+        $TelegramRequestDocument = new TelegramRequestDocument($this->getUser(), $this->getChat());
 
         return $this->telegramRequest = $TelegramRequestDocument;
     }
 
     private function responseLocation(): ?TelegramRequestLocation
     {
-        $TelegramRequestLocation = new TelegramRequestLocation($this->getUser(), $this->getChat(), $this->cache);
+        $TelegramRequestLocation = new TelegramRequestLocation($this->getUser(), $this->getChat());
 
         return $this->telegramRequest = $TelegramRequestLocation;
     }
 
     private function responsePhoto(): TelegramRequestIdentifier|TelegramRequestPhoto|TelegramRequestQrcode|null
     {
-        $TelegramRequestPhoto = new TelegramRequestPhoto($this->getUser(), $this->getChat(), $this->cache);
+        $TelegramRequestPhoto = new TelegramRequestPhoto($this->getUser(), $this->getChat());
 
         /** Делаем пред загрузку фото */
 
@@ -357,13 +358,13 @@ final class TelegramRequest
                 /** Если QR является идентификатором - присваиваем TelegramRequestIdentifier */
                 if($QRdata && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $QRdata))
                 {
-                    $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat(), $this->cache);
+                    $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
                     $TelegramRequestIdentifier->setIdentifier($QRdata);
 
                     return $this->telegramRequest = $TelegramRequestIdentifier;
                 }
 
-                $TelegramRequestQrcode = new TelegramRequestQrcode($this->getUser(), $this->getChat(), $this->cache);
+                $TelegramRequestQrcode = new TelegramRequestQrcode($this->getUser(), $this->getChat());
                 return $this->telegramRequest = $TelegramRequestQrcode->setText($QRdata);
 
             }
@@ -399,13 +400,13 @@ final class TelegramRequest
         /** Если текст является идентификатором - присваиваем TelegramRequestIdentifier */
         if($message->text && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $message->text))
         {
-            $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat(), $this->cache);
+            $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
             $TelegramRequestIdentifier->setIdentifier($message->text);
 
             return $this->telegramRequest = $TelegramRequestIdentifier;
         }
 
-        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat(), $this->cache);
+        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat());
 
         return $this->telegramRequest = $TelegramRequestMessage;
     }

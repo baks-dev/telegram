@@ -42,6 +42,7 @@ use BaksDev\Telegram\Request\Type\TelegramRequestVideo;
 use DateInterval;
 use JsonException;
 use Prophecy\Exception\Exception;
+use Psr\Cache\CacheItemInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -158,7 +159,7 @@ final class TelegramRequest
         $TelegramRequest->setUpdate($this->request->update_id);
 
         /** Присваиваем идентификатор предыдущего сообщения */
-        $lastItem = $this->cache->getItem('last-'.$TelegramRequest->getUserId());
+        $lastItem = $this->cache->getItem('last-'.$TelegramRequest->getChatId());
         $lastId = (int) $lastItem->get();
         $TelegramRequest->setLast($lastId);
 
@@ -185,6 +186,12 @@ final class TelegramRequest
         if(property_exists($message, 'text'))
         {
             $TelegramRequest->setText($message->text);
+
+            if(in_array($message->text, ['menu', '/menu', 'start', '/start']))
+            {
+                $index = 'action-'.$TelegramRequest->getChatId();
+                $this->cache->deleteItem($index);
+            }
         }
 
         if(property_exists($message, 'language_code'))
@@ -213,11 +220,28 @@ final class TelegramRequest
         if($query->data)
         {
             $calls = explode('|', $query->data, 2);
-            $TelegramRequestCallback->setCall(current($calls));
+            $currentCall = current($calls);
+
+            $TelegramRequestCallback->setCall($currentCall);
 
             if(isset($calls[1]))
             {
                 $TelegramRequestCallback->setIdentifier(end($calls));
+
+                $indexAction = 'action-'.$TelegramRequestCallback->getChatId();
+
+                if($currentCall === 'action')
+                {
+                    /** @var CacheItemInterface $actionItem */
+                    $actionItem = $this->cache->getItem($indexAction);
+                    $actionItem->set(end($calls));
+                    $actionItem->expiresAfter(DateInterval::createFromDateString('1 day'));
+                    $this->cache->save($actionItem);
+                }
+                else
+                {
+                    $this->cache->deleteItem($indexAction);
+                }
             }
         }
 
@@ -234,13 +258,25 @@ final class TelegramRequest
         if(property_exists($query, 'text'))
         {
             $TelegramRequestCallback->setText($query->text);
+
+            $indexAction = 'action-'.$TelegramRequestCallback->getChatId();
+
+            if(in_array($query->text, ['menu', '/menu', 'start', '/start']))
+            {
+                $this->cache->deleteItem($indexAction);
+            }
+
+            /** @var CacheItemInterface $actionItem */
+            $actionItem = $this->cache->getItem($indexAction);
+            $TelegramRequestCallback->setAction($actionItem->get());
+
         }
 
 
         $TelegramRequestCallback->setUpdate($this->request->update_id);
 
         /** Присваиваем идентификатор предыдущего сообщения */
-        $lastItem = $this->cache->getItem('last-'.$TelegramRequestCallback->getUserId());
+        $lastItem = $this->cache->getItem('last-'.$TelegramRequestCallback->getChatId());
         $lastId = (int) $lastItem->get();
 
         if($query->message->message_id === $lastId)

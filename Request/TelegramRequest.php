@@ -108,7 +108,6 @@ final class TelegramRequest
         }
 
 
-
         if($this->telegramRequest)
         {
             return $this->telegramRequest;

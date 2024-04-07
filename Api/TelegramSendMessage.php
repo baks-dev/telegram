@@ -108,26 +108,31 @@ final class TelegramSendMessage extends Telegram
         {
             $option['disable_notification'] = true;
         }
-        else
+
+        $now = new DateTimeImmutable();
+
+        /** Сегодня с 00:00 до 8:00 */
+        $startNightsTime = DateTimeImmutable::createFromFormat('H:i', '00:00');
+        $endNightsTime = DateTimeImmutable::createFromFormat('H:i', '08:00');
+
+        /** Сегодня с 20:00 до 00:00 */
+        $startEveningTime = DateTimeImmutable::createFromFormat('H:i', '20:00');
+        $endEveningTime = DateTimeImmutable::createFromFormat('H:i', '00:00');
+
+        /**
+         * Отправляем сообщение без звука:
+         * - ночное время (20:00 - 8:00)
+         * - субботу или воскресенье
+        */
+        if(
+            ($now > $startNightsTime && $now < $endNightsTime) ||
+            ($now > $startEveningTime && $now < $endEveningTime) ||
+            $now->format('D') === 'Sun' ||
+            $now->format('D') === 'Sat'
+        )
         {
-            $now = new DateTimeImmutable();
-
-            /** Сегодня с 00:00 до 8:00 */
-            $startNightsTime = DateTimeImmutable::createFromFormat('H:i', '00:00');
-            $endNightsTime = DateTimeImmutable::createFromFormat('H:i', '08:00');
-
-            /** Сегодня с 20:00 до 00:00 */
-            $startEveningTime = DateTimeImmutable::createFromFormat('H:i', '20:00');
-            $endEveningTime = DateTimeImmutable::createFromFormat('H:i', '00:00');
-
-            /* В ночное время (20:00 - 8:00) - отправляем сообщение без звука */
-            if(($now > $startNightsTime && $now < $endNightsTime) || ($now > $startEveningTime && $now < $endEveningTime))
-            {
-                $option['disable_notification'] = true;
-            }
+            $option['disable_notification'] = true;
         }
-
-        //$this->message = $now > $startTime || $now < $endTime  ? 'YES' : 'NO';
 
         $option['text'] = $this->message;
 

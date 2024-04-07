@@ -127,8 +127,7 @@ final class TelegramSendMessage extends Telegram
         if(
             ($now > $startNightsTime && $now < $endNightsTime) ||
             ($now > $startEveningTime && $now < $endEveningTime) ||
-            $now->format('D') === 'Sun' ||
-            $now->format('D') === 'Sat'
+            in_array($now->format('D'), ['Sat', 'Sun'])
         )
         {
             $option['disable_notification'] = true;

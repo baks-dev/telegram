@@ -49,19 +49,3 @@ return static function(FrameworkConfig $framework) {
     ;
 
 };
-
-
-/* baks-telegram@.service
-
-[Unit]
-Description=Baks Telegram Messenger %i
-
-[Service]
-ExecStart=php /.......PATH_TO_PROJECT......../bin/console messenger:consume telegram --memory-limit=128m --time-limit=3600 --limit=1000
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=default.target
-
-*/

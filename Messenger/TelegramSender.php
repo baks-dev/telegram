@@ -71,7 +71,7 @@ final class TelegramSender
             }
 
             $this->logger->critical('Ошибка отправки сообщения', [
-                __FILE__.':'.__LINE__,
+                self::class.':'.__LINE__,
                 $message->getOption()
             ]);
 

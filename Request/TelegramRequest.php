@@ -95,7 +95,7 @@ final class TelegramRequest
 
         if(!$secretToken)
         {
-            $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token', [__FILE__.':'.__LINE__]);
+            $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token', [self::class.':'.__LINE__]);
             return $this->telegramRequest = null;
         }
 
@@ -103,7 +103,7 @@ final class TelegramRequest
 
         if(!$settings->equalsSecret($secretToken))
         {
-            $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token', [__FILE__.':'.__LINE__]);
+            $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token', [self::class.':'.__LINE__]);
             return $this->telegramRequest = null;
         }
 
@@ -124,7 +124,7 @@ final class TelegramRequest
             return $this->telegramRequest = null;
         }
 
-        $this->logger->debug($data, [__FILE__.':'.__LINE__]);
+        $this->logger->debug($data, [self::class.':'.__LINE__]);
 
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
         {
@@ -135,7 +135,7 @@ final class TelegramRequest
 
         if(!property_exists($this->request, 'message'))
         {
-            $this->logger->critical(sprintf('Запрос невозможно распознать: %s', $data), [__FILE__.':'.__LINE__]);
+            $this->logger->critical(sprintf('Запрос невозможно распознать: %s', $data), [self::class.':'.__LINE__]);
             return $this->telegramRequest = null;
         }
 
@@ -172,7 +172,7 @@ final class TelegramRequest
         {
             if($message->message_id === $lastId)
             {
-                $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [__FILE__.':'.__LINE__]);
+                $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [self::class.':'.__LINE__]);
                 return $this->telegramRequest = null;
             }
 
@@ -281,7 +281,7 @@ final class TelegramRequest
 
         if($query->message->message_id === $lastId)
         {
-            $this->logger->warning(sprintf('Дубликат запроса клика кнопки: %s', $query->data), [__FILE__.':'.__LINE__]);
+            $this->logger->warning(sprintf('Дубликат запроса клика кнопки: %s', $query->data), [self::class.':'.__LINE__]);
             return $this->telegramRequest = null;
         }
 

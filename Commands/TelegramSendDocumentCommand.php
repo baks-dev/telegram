@@ -25,9 +25,8 @@ declare(strict_types=1);
 
 namespace BaksDev\Telegram\Commands;
 
-
 use BaksDev\Telegram\Api\TelegramSendDocument;
-use BaksDev\Telegram\Api\TelegramSendMessage;
+use BaksDev\Telegram\Api\TelegramSendMessages;
 use BaksDev\Telegram\Api\TelegramSendVideo;
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -43,28 +42,12 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 )]
 class TelegramSendDocumentCommand extends Command
 {
-    private TelegramBotSettingsInterface $telegramBotSettings;
-    private string $TELEGRAM_NOTIFIER;
-    private TelegramSendDocument $telegramSendDocument;
-    private TelegramSendMessage $telegramSendMessage;
-    private TelegramSendVideo $telegramSendVideo;
-
     public function __construct(
-        #[Autowire(env: 'TELEGRAM_NOTIFIER')] string $TELEGRAM_NOTIFIER,
-        TelegramSendVideo $telegramSendVideo,
-        TelegramBotSettingsInterface $telegramBotSettings,
-        TelegramSendDocument $telegramSendDocument,
-        TelegramSendMessage $telegramSendMessage,
-    )
-    {
+        #[Autowire(env: 'TELEGRAM_NOTIFIER')] private readonly string $TELEGRAM_NOTIFIER,
+        private readonly TelegramBotSettingsInterface $telegramBotSettings,
+        private readonly TelegramSendDocument $telegramSendDocument,
+    ) {
         parent::__construct();
-
-        $this->telegramBotSettings = $telegramBotSettings;
-        $this->TELEGRAM_NOTIFIER = $TELEGRAM_NOTIFIER;
-
-        $this->telegramSendDocument = $telegramSendDocument;
-        $this->telegramSendMessage = $telegramSendMessage;
-        $this->telegramSendVideo = $telegramSendVideo;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -78,19 +61,19 @@ class TelegramSendDocumentCommand extends Command
             $io->success('Не найдено настроек для телеграм бота');
         }
 
-//        $response = $this->telegramSendVideo
-//            ->token($settings->getToken())
-//            ->chanel($this->TELEGRAM_NOTIFIER)
-//            ->video('http://bundles.baks.dev/live/2024/02/06/22/27/18-06000.ts')
-//            ->send()
-//        ;
+        //        $response = $this->telegramSendVideo
+        //            ->token($settings->getToken())
+        //            ->chanel($this->TELEGRAM_NOTIFIER)
+        //            ->video('http://bundles.baks.dev/live/2024/02/06/22/27/18-06000.ts')
+        //            ->send()
+        //        ;
 
-//        $response = $this->telegramSendMessage
-//            ->token($settings->getToken())
-//            ->chanel($this->TELEGRAM_NOTIFIER)
-//            ->message('Проверка')
-//            ->send()
-//        ;
+        //        $response = $this->telegramSendMessage
+        //            ->token($settings->getToken())
+        //            ->chanel($this->TELEGRAM_NOTIFIER)
+        //            ->message('Проверка')
+        //            ->send()
+        //        ;
 
         //dump($response);
         //dd($settings->getToken());
@@ -99,16 +82,15 @@ class TelegramSendDocumentCommand extends Command
             ->token($settings->getToken())
             ->chanel($this->TELEGRAM_NOTIFIER)
             ->document('https://bundles.baks.dev/live/2024/02/06/22/27/18-06000.zip')
-            ->send()
-            ;
+            ->send();
 
-//        $response = $this->telegramSendVideo
-//            ->token($settings->getToken())
-//            ->chanel($this->TELEGRAM_NOTIFIER)
-//            //->video('https://bundles.baks.dev/live/2024/02/06/22/27/18-06000.zip')
-//            //->video('https://bundles.baks.dev/live/video_2024-02-08_23-56-48.mp4')
-//            ->send()
-//        ;
+        //        $response = $this->telegramSendVideo
+        //            ->token($settings->getToken())
+        //            ->chanel($this->TELEGRAM_NOTIFIER)
+        //            //->video('https://bundles.baks.dev/live/2024/02/06/22/27/18-06000.zip')
+        //            //->video('https://bundles.baks.dev/live/video_2024-02-08_23-56-48.mp4')
+        //            ->send()
+        //        ;
 
         // Connection #0 to host api.telegram.org left intact
 

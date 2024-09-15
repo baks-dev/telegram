@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2024.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,24 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\Config\FrameworkConfig;
+use BaksDev\Telegram\BaksDevTelegramBundle;
 
-return static function(FrameworkConfig $framework) {
+return static function (ContainerConfigurator $configurator) {
 
-    $messenger = $framework->messenger();
+    $services = $configurator->services()
+        ->defaults()
+        ->autowire()
+        ->autoconfigure();
 
-    $messenger
-        ->transport('telegram')
-        ->dsn('redis://%env(REDIS_PASSWORD)%@%env(REDIS_HOST)%:%env(REDIS_PORT)%?auto_setup=true')
-        ->options(['stream' => 'telegram'])
-        ->failureTransport('failed-telegram')
-        ->retryStrategy()
-        ->maxRetries(3) // количество попыток отправки сообщения
-        ->delay(1000) // задержка в миллисекундах
-        ->maxDelay(0)
-        ->multiplier(3) // увеличиваем задержку перед каждой повторной попыткой
-        ->service(null)
+    $NAMESPACE = BaksDevTelegramBundle::NAMESPACE;
+    $PATH = BaksDevTelegramBundle::PATH;
 
-    ;
-
-    $failure = $framework->messenger();
-
-    $failure->transport('failed-telegram')
-        ->dsn('%env(MESSENGER_TRANSPORT_DSN)%')
-        ->options(['queue_name' => 'failed-telegram'])
-    ;
+    $services->load($NAMESPACE, $PATH)
+        ->exclude([
+            $PATH.'{Entity,Resources,Type}',
+            $PATH.'**'.DIRECTORY_SEPARATOR.'*Message.php',
+            $PATH.'**'.DIRECTORY_SEPARATOR.'*DTO.php',
+            $PATH.'**'.DIRECTORY_SEPARATOR.'*Test.php',
+        ]);
 
 };

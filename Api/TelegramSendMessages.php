@@ -28,7 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @see https://core.telegram.org/bots/api#sendmessage
  */
-final class TelegramSendMessage extends Telegram
+final class TelegramSendMessages extends Telegram
 {
     /**
      * Сообщение
@@ -89,7 +89,7 @@ final class TelegramSendMessage extends Telegram
         return $this;
     }
 
-    function option(): ?array
+    public function option(): ?array
     {
         if($this->chanel === null)
         {
@@ -123,13 +123,12 @@ final class TelegramSendMessage extends Telegram
          * Отправляем сообщение без звука:
          * - ночное время (20:00 - 8:00)
          * - субботу или воскресенье
-        */
+         */
         if(
             ($now > $startNightsTime && $now < $endNightsTime) ||
             ($now > $startEveningTime && $now < $endEveningTime) ||
             in_array($now->format('D'), ['Sat', 'Sun'])
-        )
-        {
+        ) {
             $option['disable_notification'] = true;
         }
 

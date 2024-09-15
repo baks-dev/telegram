@@ -32,7 +32,7 @@ namespace BaksDev\Telegram\Api;
  *
  * @see https://core.telegram.org/bots/api#deletemessage
  */
-final class TelegramDeleteMessage extends Telegram
+final class TelegramDeleteMessages extends Telegram
 {
     private int $message;
 

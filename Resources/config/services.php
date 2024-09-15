@@ -25,7 +25,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use BaksDev\Telegram\BaksDevTelegramBundle;
 
-return static function(ContainerConfigurator $configurator) {
+return static function (ContainerConfigurator $configurator) {
 
     $services = $configurator->services()
         ->defaults()
@@ -35,13 +35,12 @@ return static function(ContainerConfigurator $configurator) {
     $NAMESPACE = BaksDevTelegramBundle::NAMESPACE;
     $PATH = BaksDevTelegramBundle::PATH;
 
-
     $services->load($NAMESPACE, $PATH)
         ->exclude([
             $PATH.'{Entity,Resources,Type}',
-            //$MODULE.'**/*Message.php',
-            $PATH.'**/*DTO.php',
-        ])
-    ;
+            $PATH.'**'.DIRECTORY_SEPARATOR.'*Message.php',
+            $PATH.'**'.DIRECTORY_SEPARATOR.'*DTO.php',
+            $PATH.'**'.DIRECTORY_SEPARATOR.'*Test.php',
+        ]);
 
 };

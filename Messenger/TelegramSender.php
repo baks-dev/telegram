@@ -26,7 +26,9 @@ declare(strict_types=1);
 namespace BaksDev\Telegram\Messenger;
 
 use BaksDev\Core\Cache\AppCacheInterface;
+use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Telegram\Exception\TelegramRequestException;
+use DateInterval;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
@@ -37,15 +39,13 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 #[AsMessageHandler]
 final class TelegramSender
 {
-    private CacheInterface $cache;
     private LoggerInterface $logger;
 
     public function __construct(
-        AppCacheInterface $appCache,
+        private readonly AppCacheInterface $appCache,
+        private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $telegramLogger
-    )
-    {
-        $this->cache = $appCache->init('telegram');
+    ) {
         $this->logger = $telegramLogger;
     }
 
@@ -53,6 +53,22 @@ final class TelegramSender
 
     public function __invoke(TelegramMessage $message): array
     {
+        $Deduplicator = $this->deduplicator
+            ->namespace('module-name')
+            ->expiresAfter(DateInterval::createFromDateString('60 seconds'))
+            ->deduplication([
+                $message->getToken(),
+                $message->getOption() ? implode($message->getOption()) : '',
+                $message->getMethod()
+            ]);
+
+        if($Deduplicator->isExecuted())
+        {
+            return [];
+        }
+
+        $cache = $this->appCache->init('telegram');
+
         $this->token = $message->getToken();
 
         $HttpClient = HttpClient::create()->withOptions(
@@ -60,7 +76,9 @@ final class TelegramSender
         );
 
         $response = $HttpClient->request(
-            'POST', $message->getMethod(), ['json' => $message->getOption()]
+            'POST',
+            $message->getMethod(),
+            ['json' => $message->getOption()]
         );
 
         if($response->getStatusCode() !== 200)
@@ -78,6 +96,8 @@ final class TelegramSender
             return [];
         }
 
+        $Deduplicator->save();
+
         if($message->getMethod() === 'getFile')
         {
             return $this->saveFile($response);
@@ -92,9 +112,9 @@ final class TelegramSender
             /** Сохраняем идентификатор системного сообщения */
             if(isset($result['result']['message_id']))
             {
-                $systemItem = $this->cache->getItem('system-'.$option['chat_id']);
+                $systemItem = $cache->getItem('system-'.$option['chat_id']);
                 $systemItem->set($result['result']['message_id']);
-                $this->cache->save($systemItem);
+                $cache->save($systemItem);
             }
 
             /** Если указано удаляем сообщение */
@@ -110,7 +130,9 @@ final class TelegramSender
                     try
                     {
                         $HttpClient->request(
-                            'POST', 'deleteMessage', ['json' => ['message_id' => $delete, 'chat_id' => $option['chat_id']]]
+                            'POST',
+                            'deleteMessage',
+                            ['json' => ['message_id' => $delete, 'chat_id' => $option['chat_id']]]
                         );
                     }
                     catch(Exception)
@@ -152,7 +174,8 @@ final class TelegramSender
             fclose($handle);
 
             $dataFile = array_merge(
-                $dataFile, ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].'.'.$extension]
+                $dataFile,
+                ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].'.'.$extension]
             );
 
         }

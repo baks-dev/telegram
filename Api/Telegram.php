@@ -20,6 +20,7 @@ namespace BaksDev\Telegram\Api;
 
 use App\Kernel;
 use BaksDev\Core\Cache\AppCacheInterface;
+use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use BaksDev\Telegram\Messenger\TelegramMessage;
@@ -32,20 +33,17 @@ abstract class Telegram
     private ?MessageDispatchInterface $messageDispatch;
 
     protected string|int|null $chanel = null;
-    private TelegramBotSettingsInterface $telegramBotSettings;
-    private AppCacheInterface $cache;
+
     private LoggerInterface $logger;
 
     public function __construct(
-        AppCacheInterface $cache,
-        TelegramBotSettingsInterface $telegramBotSettings,
+        private readonly AppCacheInterface $cache,
+        private readonly TelegramBotSettingsInterface $telegramBotSettings,
+        private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $telegramLogger,
         MessageDispatchInterface $messageDispatch = null,
-    )
-    {
+    ) {
         $this->messageDispatch = $messageDispatch;
-        $this->telegramBotSettings = $telegramBotSettings;
-        $this->cache = $cache;
         $this->logger = $telegramLogger;
     }
 
@@ -78,9 +76,6 @@ abstract class Telegram
         return $this;
     }
 
-    /**
-     * Token.
-     */
     protected function getToken(): ?string
     {
         return $this->token;
@@ -88,11 +83,6 @@ abstract class Telegram
 
     public function send(bool $async = false): bool|array|null
     {
-        //        if(Kernel::isTestEnvironment())
-        //        {
-        //            return null;
-        //        }
-
         if($this->token === null)
         {
             $settings = $this->telegramBotSettings->settings();
@@ -117,7 +107,7 @@ abstract class Telegram
             return true;
         }
 
-        return (new TelegramSender($this->cache, $this->logger))($TelegramMessage) ?: false;
+        return (new TelegramSender($this->cache, $this->deduplicator, $this->logger))($TelegramMessage) ?: false;
     }
 
 }

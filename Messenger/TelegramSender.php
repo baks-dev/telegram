@@ -54,13 +54,9 @@ final class TelegramSender
     public function __invoke(TelegramMessage $message): array
     {
         $Deduplicator = $this->deduplicator
-            ->namespace('module-name')
+            ->namespace('telegram')
             ->expiresAfter(DateInterval::createFromDateString('60 seconds'))
-            ->deduplication([
-                $message->getToken(),
-                $message->getOption() ? implode($message->getOption()) : '',
-                $message->getMethod()
-            ]);
+            ->deduplication([$message]);
 
         if($Deduplicator->isExecuted())
         {

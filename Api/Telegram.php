@@ -46,7 +46,7 @@ abstract class Telegram
         private readonly TelegramBotSettingsInterface $telegramBotSettings,
         private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $telegramLogger,
-        MessageDispatchInterface $messageDispatch = null,
+        ?MessageDispatchInterface $messageDispatch = null,
     )
     {
         $this->messageDispatch = $messageDispatch;

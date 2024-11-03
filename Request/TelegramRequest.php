@@ -41,7 +41,6 @@ use BaksDev\Telegram\Request\Type\TelegramRequestQrcode;
 use BaksDev\Telegram\Request\Type\TelegramRequestVideo;
 use DateInterval;
 use JsonException;
-use Prophecy\Exception\Exception;
 use Psr\Cache\CacheItemInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -96,6 +95,7 @@ final class TelegramRequest
         if(!$secretToken)
         {
             $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token', [self::class.':'.__LINE__]);
+
             return $this->telegramRequest = null;
         }
 
@@ -104,9 +104,9 @@ final class TelegramRequest
         if(!$settings->equalsSecret($secretToken))
         {
             $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token', [self::class.':'.__LINE__]);
+
             return $this->telegramRequest = null;
         }
-
 
         if($this->telegramRequest)
         {
@@ -128,8 +128,14 @@ final class TelegramRequest
 
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
         {
+            if(is_null($this->telegramRequest))
+            {
+                return $this->telegramRequest = null;
+            }
+
             $this->responseCallback();
             $this->telegramChatAction->chanel($this->telegramRequest->getChatId())->send();
+
             return $this->telegramRequest;
         }
 
@@ -173,6 +179,7 @@ final class TelegramRequest
             if($message->message_id === $lastId)
             {
                 $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [self::class.':'.__LINE__]);
+
                 return $this->telegramRequest = null;
             }
 
@@ -282,6 +289,7 @@ final class TelegramRequest
         if($query->message->message_id === $lastId)
         {
             $this->logger->warning(sprintf('Дубликат запроса клика кнопки: %s', $query->data), [self::class.':'.__LINE__]);
+
             return $this->telegramRequest = null;
         }
 
@@ -364,6 +372,7 @@ final class TelegramRequest
                 }
 
                 $TelegramRequestQrcode = new TelegramRequestQrcode($this->getUser(), $this->getChat());
+
                 return $this->telegramRequest = $TelegramRequestQrcode->setText($QRdata);
 
             }
@@ -386,7 +395,6 @@ final class TelegramRequest
 
             $TelegramRequestPhoto->addPhoto($TelegramRequestPhotoFile);
         }
-
 
         return $this->telegramRequest = $TelegramRequestPhoto;
     }
@@ -482,7 +490,6 @@ final class TelegramRequest
             $data = $this->request->callback_query->message->chat;
         }
 
-
         $chat = new TelegramChatDTO();
 
         if(!$data)
@@ -511,7 +518,6 @@ final class TelegramRequest
         {
             $chat->setFirstName($data->first_name);
         }
-
 
         /**
          * @note  Optional.

@@ -51,10 +51,16 @@ final class TelegramSendMessages extends Telegram
      */
     private array $delete = [];
 
+    /**
+     * Отправить уведомления
+     */
+    private bool $notification = true;
 
-    public function message(string $message): self
+
+    public function message(string $message, bool $notification = true): self
     {
         $this->message = $message;
+        $this->notification = $notification;
         return $this;
     }
 
@@ -109,7 +115,7 @@ final class TelegramSendMessages extends Telegram
         }
 
 
-        if(Kernel::isTestEnvironment())
+        if($this->notification === false || $this->isExecuteEnvironment() === false)
         {
             $option['disable_notification'] = true;
         }

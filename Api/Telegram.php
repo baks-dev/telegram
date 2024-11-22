@@ -32,6 +32,7 @@ use BaksDev\Telegram\Messenger\TelegramMessage;
 use BaksDev\Telegram\Messenger\TelegramSender;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 abstract class Telegram
 {
@@ -42,6 +43,7 @@ abstract class Telegram
     private LoggerInterface $logger;
 
     public function __construct(
+        #[Autowire(env: 'APP_ENV')] private readonly string $environment,
         private readonly AppCacheInterface $cache,
         private readonly TelegramBotSettingsInterface $telegramBotSettings,
         private readonly DeduplicatorInterface $deduplicator,
@@ -114,6 +116,17 @@ abstract class Telegram
         }
 
         return (new TelegramSender($this->cache, $this->deduplicator, $this->logger))($TelegramMessage) ?: false;
+    }
+
+
+    /**
+     * Метод проверяет что окружение является PROD,
+     * тем самым позволяет выполнять операции запроса на сторонний сервис
+     * ТОЛЬКО в PROD окружении
+     */
+    protected function isExecuteEnvironment(): bool
+    {
+        return $this->environment === 'prod';
     }
 
 }

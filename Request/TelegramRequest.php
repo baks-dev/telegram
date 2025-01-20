@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ use DateInterval;
 use JsonException;
 use Psr\Cache\CacheItemInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -50,38 +51,22 @@ use Zxing\QrReader;
 
 final class TelegramRequest
 {
-
     private ?TelegramRequestInterface $telegramRequest = null;
 
     private object $request;
 
-    private RequestStack $requestStack;
-
     private CacheInterface $cache;
 
-    private LoggerInterface $logger;
-
-    private TelegramBotSettingsInterface $telegramBotSettings;
-
-    private TelegramGetFile $telegramGetFile;
-
-    private TelegramChatAction $telegramChatAction;
-
     public function __construct(
-        RequestStack $requestStack,
-        LoggerInterface $telegramLogger,
-        AppCacheInterface $appCache,
-        TelegramBotSettingsInterface $telegramBotSettings,
-        TelegramGetFile $telegramGetFile,
-        TelegramChatAction $telegramChatAction
+        #[Target('telegramLogger')] private readonly LoggerInterface $logger,
+        private readonly RequestStack $requestStack,
+        private readonly AppCacheInterface $appCache,
+        private readonly TelegramBotSettingsInterface $telegramBotSettings,
+        private readonly TelegramGetFile $telegramGetFile,
+        private readonly TelegramChatAction $telegramChatAction
     )
     {
-        $this->requestStack = $requestStack;
-        $this->cache = $appCache->init('telegram'); // new ApcuAdapter('telegram');
-        $this->logger = $telegramLogger;
-        $this->telegramBotSettings = $telegramBotSettings;
-        $this->telegramGetFile = $telegramGetFile;
-        $this->telegramChatAction = $telegramChatAction;
+        $this->cache = $appCache->init('telegram');
     }
 
     public function request(?Request $req = null): ?TelegramRequestInterface

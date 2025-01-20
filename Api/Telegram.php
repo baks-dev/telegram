@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ use BaksDev\Telegram\Messenger\TelegramSender;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 
 abstract class Telegram
 {
@@ -40,19 +41,16 @@ abstract class Telegram
 
     protected string|int|null $chanel = null;
 
-    private LoggerInterface $logger;
-
     public function __construct(
         #[Autowire(env: 'APP_ENV')] private readonly string $environment,
+        #[Target('telegramLogger')] private readonly LoggerInterface $logger,
         private readonly AppCacheInterface $cache,
         private readonly TelegramBotSettingsInterface $telegramBotSettings,
         private readonly DeduplicatorInterface $deduplicator,
-        LoggerInterface $telegramLogger,
         ?MessageDispatchInterface $messageDispatch = null,
     )
     {
         $this->messageDispatch = $messageDispatch;
-        $this->logger = $telegramLogger;
     }
 
 

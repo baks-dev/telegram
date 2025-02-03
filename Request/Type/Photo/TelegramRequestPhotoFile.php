@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,7 @@ final class TelegramRequestPhotoFile
     private int $height;
 
     /** Путь к локальному файлу */
-    private ?string $path = null;
+    private string|false $path = false;
 
     /**
      * Id
@@ -133,14 +133,15 @@ final class TelegramRequestPhotoFile
     /**
      * Path
      */
-    public function getPath(): ?string
+    public function getPath(): string|false
     {
         return $this->path;
     }
 
-    public function setPath(?string $path): self
+    public function setPath(string|null|false $path): self
     {
-        $this->path = $path;
+        $this->path = empty($path) ? false : $path;
+
         return $this;
     }
 

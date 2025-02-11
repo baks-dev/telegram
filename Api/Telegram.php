@@ -113,9 +113,14 @@ abstract class Telegram
             return true;
         }
 
-        return (new TelegramSender($this->cache, $this->deduplicator, $this->logger))($TelegramMessage) ?: false;
-    }
+        $TelegramSender = new TelegramSender(
+            logger: $this->logger,
+            appCache: $this->cache,
+            deduplicator: $this->deduplicator
+        );
 
+        return $TelegramSender($TelegramMessage) ?: false;
+    }
 
     /**
      * Метод проверяет что окружение является PROD,

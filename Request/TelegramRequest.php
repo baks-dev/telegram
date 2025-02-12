@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Telegram\Request;
 
+use BaksDev\Barcode\Reader\BarcodeRead;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Telegram\Api\TelegramChatAction;
 use BaksDev\Telegram\Api\TelegramGetFile;
@@ -47,7 +48,6 @@ use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
-use Zxing\QrReader;
 
 final class TelegramRequest
 {
@@ -63,7 +63,8 @@ final class TelegramRequest
         private readonly AppCacheInterface $appCache,
         private readonly TelegramBotSettingsInterface $telegramBotSettings,
         private readonly TelegramGetFile $telegramGetFile,
-        private readonly TelegramChatAction $telegramChatAction
+        private readonly TelegramChatAction $telegramChatAction,
+        private readonly BarcodeRead $BarcodeRead,
     )
     {
         $this->cache = $appCache->init('telegram');
@@ -164,8 +165,9 @@ final class TelegramRequest
             if($message->message_id === $lastId)
             {
                 $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [self::class.':'.__LINE__]);
+                exit;
 
-                return $this->telegramRequest = null;
+                //return $this->telegramRequest = null;
             }
 
             $TelegramRequest->setId($message->message_id);
@@ -338,9 +340,9 @@ final class TelegramRequest
                 ->send(false);
 
             /** Проверяем, является ли фото QR-кодом с идентификатором */
+            $barcode = $this->BarcodeRead->decode($file['tmp_file']);
 
-            $qrcode = new QrReader($file['tmp_file']);
-            $QRdata = (string) $qrcode->text(); // декодированный текст из QR-кода
+            $QRdata = $barcode->isError() ? false : $barcode->getText();
 
             if($QRdata)
             {
@@ -348,7 +350,7 @@ final class TelegramRequest
                 unlink($file['tmp_file']);
 
                 /** Если QR является идентификатором - присваиваем TelegramRequestIdentifier */
-                if($QRdata && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $QRdata))
+                if(preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $QRdata))
                 {
                     $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
                     $TelegramRequestIdentifier->setIdentifier($QRdata);

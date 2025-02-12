@@ -44,7 +44,10 @@ final class TelegramSender
         #[Target('telegramLogger')] private readonly LoggerInterface $logger,
         private readonly AppCacheInterface $appCache,
         private readonly DeduplicatorInterface $deduplicator,
-    ) {}
+    )
+    {
+        $this->deduplicator->namespace('telegram');
+    }
 
     public function __invoke(TelegramMessage $message): array
     {
@@ -59,7 +62,6 @@ final class TelegramSender
         }
 
         $cache = $this->appCache->init('telegram');
-
         $this->token = $message->getToken();
 
         $HttpClient = HttpClient::create()->withOptions(
@@ -142,6 +144,7 @@ final class TelegramSender
     {
         $dataFile = $response->toArray();
 
+        /// https://api.telegram.org/file/bot6571592607:AAGW19cNaJIf5dGQpTKrTIyXITR9OoawZqg/photos/file_1080.jpg
         if($dataFile['ok'])
         {
             $HttpClient = HttpClient::create()->withOptions(

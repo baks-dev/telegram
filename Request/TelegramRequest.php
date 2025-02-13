@@ -339,9 +339,13 @@ final class TelegramRequest
                 ->file($photo->file_id)
                 ->send(false);
 
+            if(!isset($file['tmp_file']))
+            {
+                continue;
+            }
+
             /** Проверяем, является ли фото QR-кодом с идентификатором */
             $barcode = $this->BarcodeRead->decode($file['tmp_file']);
-
             $QRdata = $barcode->isError() ? false : $barcode->getText();
 
             if($QRdata)

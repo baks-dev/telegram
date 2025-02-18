@@ -108,22 +108,30 @@ final class TelegramRequest
         catch(JsonException)
         {
             return $this->telegramRequest = null;
+            //return $this->telegramRequest = null;
         }
 
         $this->logger->debug($data, [self::class.':'.__LINE__]);
 
+        /** Если в переданном запросе присутствует callback_query - пользователь кликну по кнопке */
         if(property_exists($this->request, 'callback_query') && !empty($this->request->callback_query))
         {
-            if(is_null($this->telegramRequest))
-            {
-                return $this->telegramRequest = null;
-            }
+
+            //            if(is_null($this->telegramRequest))
+            //            {
+            //                return $this->telegramRequest = null;
+            //            }
 
             $this->responseCallback();
-            $this->telegramChatAction->chanel($this->telegramRequest->getChatId())->send();
+
+            /** Отправляем пользователю прелоадер обработки сообщения */
+            $this->telegramChatAction
+                ->chanel($this->getChat()->getId())
+                ->send();
 
             return $this->telegramRequest;
         }
+
 
         if(!property_exists($this->request, 'message'))
         {
@@ -146,6 +154,7 @@ final class TelegramRequest
             $this->telegramRequest = null;
         }
 
+        /** Отправляем пользователю прелоадер обработки сообщения */
         $this->telegramChatAction->chanel($this->telegramRequest->getChatId())->send();
 
         $message = $this->request->message;
@@ -162,13 +171,13 @@ final class TelegramRequest
 
         if(property_exists($message, 'message_id'))
         {
-            if($message->message_id === $lastId)
-            {
-                $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [self::class.':'.__LINE__]);
-                exit;
-
-                //return $this->telegramRequest = null;
-            }
+            //            if($message->message_id === $lastId)
+            //            {
+            //                $this->logger->warning(sprintf('Дубликат запроса: %s', $data), [self::class.':'.__LINE__]);
+            //                exit;
+            //
+            //                //return $this->telegramRequest = null;
+            //            }
 
             $TelegramRequest->setId($message->message_id);
         }
@@ -213,6 +222,12 @@ final class TelegramRequest
 
         if($query->data)
         {
+            /**
+             * Разбиваем сообщение по сепаратору «|» предполагая, что индекс:
+             * первый ключ (current) - нейминг кнопки
+             * последний (end) - идентификатор UUID
+             */
+
             $calls = explode('|', $query->data, 2);
             $currentCall = current($calls);
 
@@ -221,51 +236,26 @@ final class TelegramRequest
             if(isset($calls[1]))
             {
                 $TelegramRequestCallback->setIdentifier(end($calls));
-
-                $indexAction = 'action-'.$TelegramRequestCallback->getChatId();
-
-                if($currentCall === 'action')
-                {
-                    /** @var CacheItemInterface $actionItem */
-                    $actionItem = $this->cache->getItem($indexAction);
-                    $actionItem->set(end($calls));
-                    $actionItem->expiresAfter(DateInterval::createFromDateString('1 day'));
-                    $this->cache->save($actionItem);
-                }
-                else
-                {
-                    $this->cache->deleteItem($indexAction);
-                }
             }
         }
 
+        /** Идентификатор сообщения Telegram */
         if(property_exists($query, 'id'))
         {
             $TelegramRequestCallback->setId((int) $query->message->message_id);
         }
 
+        /** Дата отправки сообщения */
         if(property_exists($query, 'date'))
         {
             $TelegramRequestCallback->setDate($query->date);
         }
 
+        /** Текст сообщения */
         if(property_exists($query, 'text'))
         {
             $TelegramRequestCallback->setText($query->text);
-
-            $indexAction = 'action-'.$TelegramRequestCallback->getChatId();
-
-            if(in_array($query->text, ['menu', '/menu', 'start', '/start']))
-            {
-                $this->cache->deleteItem($indexAction);
-            }
-
-            /** @var CacheItemInterface $actionItem */
-            $actionItem = $this->cache->getItem($indexAction);
-            $TelegramRequestCallback->setAction($actionItem->get());
-
         }
-
 
         $TelegramRequestCallback->setUpdate($this->request->update_id);
 
@@ -273,12 +263,12 @@ final class TelegramRequest
         $lastItem = $this->cache->getItem('last-'.$TelegramRequestCallback->getChatId());
         $lastId = (int) $lastItem->get();
 
-        if($query->message->message_id === $lastId)
-        {
-            $this->logger->warning(sprintf('Дубликат запроса клика кнопки: %s', $query->data), [self::class.':'.__LINE__]);
-
-            return $this->telegramRequest = null;
-        }
+        //        if($query->message->message_id === $lastId)
+        //        {
+        //            $this->logger->warning(sprintf('Дубликат запроса клика кнопки: %s', $query->data), [self::class.':'.__LINE__]);
+        //
+        //            return $this->telegramRequest = null;
+        //        }
 
         $TelegramRequestCallback->setLast($lastId);
 
@@ -294,6 +284,7 @@ final class TelegramRequest
 
         return $this->telegramRequest = $TelegramRequestCallback;
     }
+
 
     private function responseVideo(): ?TelegramRequestVideo
     {
@@ -350,6 +341,8 @@ final class TelegramRequest
 
             if($QRdata)
             {
+                $this->logger->debug(sprintf('Распознали QR : %s', $QRdata));
+
                 /** Удаляем временный файл после анализа */
                 unlink($file['tmp_file']);
 

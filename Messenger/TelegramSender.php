@@ -44,10 +44,7 @@ final class TelegramSender
         #[Target('telegramLogger')] private readonly LoggerInterface $logger,
         private readonly AppCacheInterface $appCache,
         private readonly DeduplicatorInterface $deduplicator,
-    )
-    {
-        $this->deduplicator->namespace('telegram');
-    }
+    ) {}
 
     public function __invoke(TelegramMessage $message): array
     {

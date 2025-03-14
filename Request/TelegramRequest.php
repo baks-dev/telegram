@@ -87,7 +87,7 @@ final class TelegramRequest
 
         $settings = $this->telegramBotSettings->settings();
 
-        if(!$settings->equalsSecret($secretToken))
+        if(false === $settings || false === $settings->equalsSecret($secretToken))
         {
             $this->logger->critical('Не соответствует заголовок X-Telegram-Bot-Api-Secret-Token', [self::class.':'.__LINE__]);
 

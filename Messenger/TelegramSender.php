@@ -154,10 +154,10 @@ final class TelegramSender
             );
 
             $pathInfo = pathinfo($dataFile['result']['file_path']);
-            $extension = $pathInfo['extension'];
+            $extension = isset($pathInfo['extension']) ? '.'.$pathInfo['extension'] : '';
 
             $tmpfname = tempnam(sys_get_temp_dir(), $dataFile['result']['file_unique_id']);
-            $tmp_file = sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].'.'.$extension;
+            $tmp_file = sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].$extension;
             rename($tmpfname, $tmp_file);
 
             $handle = fopen($tmp_file, "w");
@@ -166,7 +166,7 @@ final class TelegramSender
 
             $dataFile = array_merge(
                 $dataFile,
-                ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].'.'.$extension]
+                ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].$extension]
             );
 
         }

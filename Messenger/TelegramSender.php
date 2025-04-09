@@ -141,7 +141,6 @@ final class TelegramSender
     {
         $dataFile = $response->toArray();
 
-        /// https://api.telegram.org/file/bot6571592607:AAGW19cNaJIf5dGQpTKrTIyXITR9OoawZqg/photos/file_1080.jpg
         if($dataFile['ok'])
         {
             $HttpClient = HttpClient::create()->withOptions(

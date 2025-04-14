@@ -37,9 +37,12 @@ class TelegramGetFileTest extends KernelTestCase
 {
     private static string $Authorization;
 
+    private static string $file;
+
     public static function setUpBeforeClass(): void
     {
         self::$Authorization = $_SERVER['TEST_TELEGRAM_TOKEN'];
+        self::$file = $_SERVER['TEST_TELEGRAM_FILE_ID'];
     }
 
     public function testUseCase(): void
@@ -49,13 +52,13 @@ class TelegramGetFileTest extends KernelTestCase
 
         $data = $TelegramGetFile
             ->token(self::$Authorization)
-            ->file('AgACAgIAAxkBAAIQKmes5tTvziiPsOaDcuBRihI2mTMhAAKt8TEb-eJpSXFTPpE6HUJqAQADAgADcwADNgQ')
+            ->file(self::$file)
             ->send();
 
         self::assertTrue(isset($data['ok']));
         self::assertTrue(isset($data['result']));
         self::assertTrue(isset($data['tmp_file']));
-        self::assertTrue(true);
+        self::assertTrue(true, message: 'Повторите попытку через 60 секунд');
 
     }
 

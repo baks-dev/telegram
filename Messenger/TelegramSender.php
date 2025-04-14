@@ -27,7 +27,6 @@ namespace BaksDev\Telegram\Messenger;
 
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
-use DateInterval;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -50,7 +49,7 @@ final class TelegramSender
     {
         $Deduplicator = $this->deduplicator
             ->namespace('telegram')
-            ->expiresAfter(DateInterval::createFromDateString('60 seconds'))
+            ->expiresAfter('60 seconds')
             ->deduplication([$message]);
 
         if($Deduplicator->isExecuted())

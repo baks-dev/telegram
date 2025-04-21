@@ -21,15 +21,9 @@
  *  THE SOFTWARE.
  */
 
-namespace BaksDev\Telegram\Request\Tests;
 
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use BaksDev\Users\User\Tests\TestUserAccount;
-use BaksDev\Wildberries\Products\Entity\Settings\WbProductSettings;
-use BaksDev\Wildberries\Products\Type\Barcode\Event\WbBarcodeEventUid;
-use BaksDev\Wildberries\Products\Type\Settings\Event\WbProductSettingsEventUid;
-use BaksDev\Wildberries\Products\UseCase\Barcode\NewEdit\Tests\NewHandleTest;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
@@ -38,9 +32,9 @@ use Symfony\Component\DependencyInjection\Attribute\When;
  * @group telegram-message
  */
 #[When(env: 'test')]
-final class TelegramRequestMessageTest extends WebTestCase
+final class TelegramRequestVideoTest extends WebTestCase
 {
-    private const string URL = '/test/telegram/request/message';
+    private const string URL = '/test/telegram/request/video';
 
     public function testRoleUserDeny(): void
     {
@@ -60,31 +54,41 @@ final class TelegramRequestMessageTest extends WebTestCase
             $usr = TestUserAccount::getUsr();
             $client->loginUser($usr, 'user');
 
-            $data = [
-                "update_id" => 844602601,
-                "message" => [
-                    "message_id" => 2122,
-                    "from" => [
-                        "id" => 1391925303,
-                        "is_bot" => false,
-                        "first_name" => "Michel Angelo",
-                        "language_code" => "ru"
-                    ],
-                    "chat" => [
-                        "id" => 1391925303,
-                        "first_name" => "Michel Angelo",
-                        "type" => "private"
-                    ],
-                    "date" => 1708084503,
-                    "text" => "message"
-                ]
-            ];
-
+            $data = json_decode('{
+            "update_id":123456789, 
+            "message":{
+                "message_id":12345,
+                
+                "from":{
+                    "id": 1234567890,
+                    "is_bot":false,
+                    "first_name":"firstName",
+                    "language_code":"ru"
+                },
+                
+                "chat":{
+                    "id":1234567890,
+                    "first_name":"firstName",
+                    "type":"private"
+                },
+                "date":1234567890,
+                "video":{
+                    "duration":0,
+                    "width":320,
+                    "height":320,
+                    "mime_type":
+                    "video/mp4",
+                    "file_id":"agRWBSxKuBhnmYaHVznwTYtpmrVjDf-DZDWmGtythspWRmpbnfDQqTwvRAUktMcgVJTAdWG",
+                    "file_unique_id":"vNPVHbMQDJxMVJymw",
+                    "file_size":559
+                }
+            }}', true, 512, JSON_THROW_ON_ERROR);
 
             $client->jsonRequest('POST', self::URL, $data);
 
-            self::assertTrue(true);
+            //self::assertResponseIsSuccessful();
 
+            self::assertTrue(true);
         }
 
         self::assertTrue(true);

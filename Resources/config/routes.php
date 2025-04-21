@@ -21,18 +21,19 @@
  *  THE SOFTWARE.
  */
 
-declare(strict_types=1);
+use BaksDev\Users\Address\BaksDevUsersAddressBundle;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-namespace BaksDev\Telegram\Request\Type;
+return function(RoutingConfigurator $routes) {
 
-use BaksDev\Telegram\Request\AbstractTelegramRequest;
-use Symfony\Component\Validator\Constraints as Assert;
+    $MODULE = BaksDevUsersAddressBundle::PATH;
 
-/**
- * Сообщение — видео, информация о видео
- * @see https://core.telegram.org/bots/api#video
- */
-final class TelegramRequestVideo extends AbstractTelegramRequest
-{
-
-}
+    $routes->import(
+        $MODULE.'Controller',
+        'attribute',
+        false,
+        $MODULE.implode(DIRECTORY_SEPARATOR, ['Controller', '**', '*Test.php'])
+    )
+        ->prefix(\BaksDev\Core\Type\Locale\Locale::routes())
+        ->namePrefix('telegram:');
+};

@@ -103,14 +103,7 @@ final class TelegramRequestPhotoTest extends WebTestCase
             ];
 
 
-            //{"update_id":445629533, "message":{"message_id":30,"from":{"id":366248132,"is_bot":false,"first_name":"\u041b\u043e\u0440\u0434 \u041f\u0435\u0439 \u0432\u043e\u0434\u0430","last_name":"\u0415\u0448\u044c \u0432\u043e\u0434\u0430","username":"BafGreen","language_code":"ru","is_premium":true},"chat":{"id":366248132,"first_name":"\u041b\u043e\u0440\u0434 \u041f\u0435\u0439 \u0432\u043e\u0434\u0430","last_name":"\u0415\u0448\u044c \u0432\u043e\u0434\u0430","username":"BafGreen","type":"private"},"date":1711358395,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
-
             $client->jsonRequest('POST', self::URL, $data);
-
-            //dd(self::class);
-
-            //$array = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
-            //self::assertEquals($array, $data);
 
             self::assertTrue(true);
 

@@ -290,7 +290,7 @@ final class TelegramRequest
     {
         $TelegramRequestVideo = new TelegramRequestVideo($this->getUser(), $this->getChat());
 
-        return $TelegramRequestVideo;
+        return $this->telegramRequest = $TelegramRequestVideo;
     }
 
     private function responseAudio(): ?TelegramRequestAudio

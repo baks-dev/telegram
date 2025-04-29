@@ -21,12 +21,12 @@
  *  THE SOFTWARE.
  */
 
-use BaksDev\Users\Address\BaksDevUsersAddressBundle;
+use BaksDev\Telegram\BaksDevTelegramBundle;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-return function(RoutingConfigurator $routes) {
+return static function(RoutingConfigurator $routes) {
 
-    $MODULE = BaksDevUsersAddressBundle::PATH;
+    $MODULE = BaksDevTelegramBundle::PATH;
 
     $routes->import(
         $MODULE.'Controller',

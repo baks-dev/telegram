@@ -34,7 +34,7 @@ enum TelegramBotCommands
     case TABLE;
 
     /** Получить ассоциированные команды по типу */
-    public function command(): array
+    public function commands(): array
     {
         return match ($this)
         {
@@ -45,12 +45,12 @@ enum TelegramBotCommands
     }
 
     /** Получить все ассоциированные команды */
-    public static function toArray(): array
+    public static function allCommands(): array
     {
         return array_merge(
-            TelegramBotCommands::START->command(),
-            TelegramBotCommands::MENU->command(),
-            TelegramBotCommands::TABLE->command(),
+            TelegramBotCommands::START->commands(),
+            TelegramBotCommands::MENU->commands(),
+            TelegramBotCommands::TABLE->commands(),
         );
     }
 }

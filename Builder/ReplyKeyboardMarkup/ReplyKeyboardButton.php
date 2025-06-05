@@ -49,18 +49,30 @@ final class ReplyKeyboardButton
      */
     private array|false $callbackData = false;
 
+    /**
+     * Текст на кнопке.
+     */
     public function setText(string $text): self
     {
         $this->text = $text;
         return $this;
     }
 
+    /**
+     * HTTP или tg:// URL, который будет открываться при нажатии кнопки.
+     */
     public function setUrl(string $url): self
     {
         $this->url = ['url' => $url];
         return $this;
     }
 
+    /**
+     * Данные, которые будут отправлены в обратном запросе боту при нажатии кнопки.
+     * Размер - 1-64 байта.
+     *
+     * @see https://core.telegram.org/bots/api#callbackquery
+     */
     public function setCallbackData(string $callbackData): self
     {
         $this->callbackData = ['callback_data' => $callbackData];

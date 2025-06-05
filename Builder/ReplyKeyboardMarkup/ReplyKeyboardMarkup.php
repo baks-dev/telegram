@@ -57,7 +57,8 @@ final class ReplyKeyboardMarkup
     /** Текущий индекс для отслеживания строк */
     private int $currentIndex = 0;
 
-    private array $rows;
+    /** Если с кнопкой есть необходимость отправить конкретной сообщение */
+    private string $description;
 
     /** Добавить кнопку в текущую строку */
     public function addCurrentRow(ReplyKeyboardButton $button)
@@ -104,15 +105,22 @@ final class ReplyKeyboardMarkup
         return $this;
     }
 
-    /** @deprecated */
-    public function addRow(ReplyKeyboardRows $rows): void
+    /** Опционально: устанавливает текст для сообщения, отправляемого с клавиатурой */
+    public function setDescription(string|null $description, string|null $default = null): self
     {
-        $this->rows[] = $rows->getRows();
+        if(empty($description))
+        {
+            $this->description = $default;
+            return $this;
+        }
+
+        $this->description = $description;
+        return $this;
     }
 
-    /** @deprecated */
-    public function getMarkup(): string
+    /** Получить текст описания для клавиатуры */
+    public function getDescription(): ?string
     {
-        return json_encode([$this->rows]);
+        return $this->description;
     }
 }

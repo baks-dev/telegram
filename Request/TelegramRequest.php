@@ -50,6 +50,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
 
+/**
+ * Проверяет запросы, поступающие на /telegram/endpoint
+ * @see EndpointController
+ */
 final class TelegramRequest
 {
     private ?TelegramRequestInterface $telegramRequest = null;
@@ -71,6 +75,9 @@ final class TelegramRequest
         $this->cache = $appCache->init('telegram');
     }
 
+    /**
+     * Проверяет http запрос и присваивает ему соответсвующий тип
+     */
     public function request(?Request $req = null): ?TelegramRequestInterface
     {
 
@@ -79,7 +86,7 @@ final class TelegramRequest
 
         $secretToken = $Request->headers->get('x-telegram-bot-api-secret-token');
 
-        if(!$secretToken)
+        if(is_null($secretToken))
         {
             $this->logger->critical('Отсутствует заголовок X-Telegram-Bot-Api-Secret-Token', [self::class.':'.__LINE__]);
 
@@ -144,7 +151,8 @@ final class TelegramRequest
             property_exists($this->request->message, 'location') && !empty($this->request->message->location) => $this->responseLocation(),
 
             property_exists($this->request->message, 'text') &&
-            in_array($this->request->message->text, TelegramBotCommands::toArray()) => $this->responseMessage(),
+            in_array($this->request->message->text, TelegramBotCommands::MENU->commands()) => $this->responseMessage(),
+
 
             default => $this->responseMessage()
         };

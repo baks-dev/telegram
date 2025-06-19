@@ -1,17 +1,17 @@
 <?php
 /*
  *  Copyright 2025.  Baks.dev <admin@baks.dev>
- *
+ *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is furnished
  *  to do so, subject to the following conditions:
- *
+ *  
  *  The above copyright notice and this permission notice shall be included in all
  *  copies or substantial portions of the Software.
- *
+ *  
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,29 +22,31 @@
  *
  */
 
-namespace BaksDev\Telegram\Api\Webhook;
+declare(strict_types=1);
 
-use BaksDev\Telegram\Api\Telegram;
-use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use BaksDev\Telegram\Api\Webhook\TelegramWebhookInfo;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * Используйте этот метод, чтобы получить текущий статус веб-перехватчика. Не требует параметров.
- * В случае успеха возвращает объект WebhookInfo.
- * Если бот использует getUpdates, он вернет объект с пустым полем URL.
- *
- * @see https://core.telegram.org/bots/api#getwebhookinfo
- * @see TelegramWebhookInfoTest
- */
-#[Autoconfigure(public: true)]
-final class TelegramWebhookInfo extends Telegram
+#[When(env: 'test')]
+class TelegramWebhookInfoTest extends KernelTestCase
 {
-    protected function method(): string
+    private static string $Authorization;
+
+    public static function setUpBeforeClass(): void
     {
-        return 'getWebhookInfo';
+        self::$Authorization = $_SERVER['TELEGRAM_BOT_TOKEN'];
     }
 
-    protected function option(): ?array
+    public function testUseCase(): void
     {
-        return null;
+        /** @var TelegramWebhookInfo $TelegramWebhookInfo */
+        $TelegramWebhookInfo = self::getContainer()->get(TelegramWebhookInfo::class);
+
+        $data = $TelegramWebhookInfo
+            ->token(self::$Authorization)
+            ->send();
+
+        dd($data);
     }
 }

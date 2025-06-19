@@ -46,7 +46,5 @@ class TelegramWebhookInfoTest extends KernelTestCase
         $data = $TelegramWebhookInfo
             ->token(self::$Authorization)
             ->send();
-
-        dd($data);
     }
 }

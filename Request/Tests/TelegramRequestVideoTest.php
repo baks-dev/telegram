@@ -24,13 +24,11 @@
 
 use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
 use BaksDev\Users\User\Tests\TestUserAccount;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group telegram
- * @group telegram-message
- */
+#[Group('telegram')]
 #[When(env: 'test')]
 final class TelegramRequestVideoTest extends WebTestCase
 {

@@ -30,13 +30,11 @@ use BaksDev\Wildberries\Products\Type\Barcode\Event\WbBarcodeEventUid;
 use BaksDev\Wildberries\Products\Type\Settings\Event\WbProductSettingsEventUid;
 use BaksDev\Wildberries\Products\UseCase\Barcode\NewEdit\Tests\NewHandleTest;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group telegram
- * @group telegram-message
- */
+#[Group('telegram')]
 #[When(env: 'test')]
 final class TelegramRequestPhotoTest extends WebTestCase
 {

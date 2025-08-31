@@ -26,12 +26,11 @@ declare(strict_types=1);
 namespace BaksDev\Telegram\Api\Tests;
 
 use BaksDev\Telegram\Api\TelegramGetFile;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group telegram
- */
+#[Group('telegram')]
 #[When(env: 'test')]
 class TelegramGetFileTest extends KernelTestCase
 {

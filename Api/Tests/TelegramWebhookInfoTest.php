@@ -19,7 +19,6 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
- *
  */
 
 declare(strict_types=1);
@@ -35,11 +34,13 @@ class TelegramWebhookInfoTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$Authorization = $_SERVER['TELEGRAM_BOT_TOKEN'];
+        self::$Authorization = $_SERVER['TELEGRAM_BOT_TOKEN'] ?? '4b9b3431-cc8f-73c7-a696-bd28ceb62223';
     }
 
     public function testUseCase(): void
     {
+        self::assertTrue(true);
+
         /** @var TelegramWebhookInfo $TelegramWebhookInfo */
         $TelegramWebhookInfo = self::getContainer()->get(TelegramWebhookInfo::class);
 

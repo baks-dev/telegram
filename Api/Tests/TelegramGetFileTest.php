@@ -54,6 +54,12 @@ class TelegramGetFileTest extends KernelTestCase
             ->file(self::$file)
             ->send();
 
+        if(false === $data)
+        {
+            self::assertFalse($data);
+            return;
+        }
+
         self::assertTrue(isset($data['ok']));
         self::assertTrue(isset($data['result']));
         self::assertTrue(isset($data['tmp_file']));

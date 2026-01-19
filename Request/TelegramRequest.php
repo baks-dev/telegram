@@ -30,7 +30,7 @@ use BaksDev\Barcode\Reader\BarcodeRead;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Telegram\Api\TelegramChatAction;
 use BaksDev\Telegram\Api\TelegramGetFile;
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\TelegramBotSettings\TelegramBotSettingsInterface;
 use BaksDev\Telegram\Request\Type\Photo\TelegramRequestPhoto;
 use BaksDev\Telegram\Request\Type\Photo\TelegramRequestPhotoFile;
 use BaksDev\Telegram\Request\Type\TelegramBotCommands;

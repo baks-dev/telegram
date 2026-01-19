@@ -23,13 +23,8 @@
 
 namespace BaksDev\Telegram\Request\Tests;
 
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\TelegramBotSettings\TelegramBotSettingsInterface;
 use BaksDev\Users\User\Tests\TestUserAccount;
-use BaksDev\Wildberries\Products\Entity\Settings\WbProductSettings;
-use BaksDev\Wildberries\Products\Type\Barcode\Event\WbBarcodeEventUid;
-use BaksDev\Wildberries\Products\Type\Settings\Event\WbProductSettingsEventUid;
-use BaksDev\Wildberries\Products\UseCase\Barcode\NewEdit\Tests\NewHandleTest;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;

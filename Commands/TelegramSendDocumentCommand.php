@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Telegram\Commands;
 
 use BaksDev\Telegram\Api\TelegramSendDocument;
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\TelegramBotSettings\TelegramBotSettingsInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

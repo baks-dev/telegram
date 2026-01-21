@@ -27,7 +27,7 @@ use App\Kernel;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Telegram\Bot\Repository\UsersTableTelegramSettings\TelegramBotSettingsInterface;
+use BaksDev\Telegram\Bot\Repository\TelegramBotSettings\TelegramBotSettingsInterface;
 use BaksDev\Telegram\Messenger\TelegramMessage;
 use BaksDev\Telegram\Messenger\TelegramSender;
 use InvalidArgumentException;

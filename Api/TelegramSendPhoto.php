@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *  
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +35,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 final class TelegramSendPhoto extends Telegram
 {
     /**
-     * Фото для отправки. Передайте file_id в виде строки, чтобы отправить фотографию, которая существует на серверах Telegram (рекомендуется),
-     * передайте URL-адрес HTTP в виде строки, чтобы Telegram мог получить фотографию из Интернета,
-     * или загрузите новую фотографию, используя multipart/form-data. Фотография должна быть размером не более 10 МБ.
-     * Суммарная ширина и высота фотографии не должны превышать 10000. Соотношение ширины и высоты должно быть не более 20.
+     * Фото для отправки. Передайте file_id в виде строки, чтобы отправить фотографию, которая существует на серверах
+     * Telegram (рекомендуется), передайте URL-адрес HTTP в виде строки, чтобы Telegram мог получить фотографию из
+     * Интернета, или загрузите новую фотографию, используя multipart/form-data. Фотография должна быть размером не
+     * более 10 МБ. Суммарная ширина и высота фотографии не должны превышать 10000. Соотношение ширины и высоты должно
+     * быть не более 20.
      */
     #[Assert\NotBlank]
     private CURLFile|string|null $photo = null;
@@ -112,62 +113,53 @@ final class TelegramSendPhoto extends Telegram
         $this->photo = $url;
     }
 
-    public function file(string $filepath): void
+    public function file(string $filepath): self
     {
+        if(false === file_exists($filepath))
+        {
+            return $this;
+        }
+
         $fileInfo = pathinfo($filepath);
 
-        if(file_exists($fileInfo['dirname'].'/'.$fileInfo['filename'].'.small.webp'))
+        /** Присваиваем путь к сжатому локальному изображению */
+        $this->photo = $fileInfo['dirname'].'/'.$fileInfo['filename'].'.small.webp';
+
+        if(true === file_exists($this->photo))
         {
-            return;
+            return $this;
         }
 
         /** Получаем файл для конвертации  */
         $type = exif_imagetype($filepath); // [] if you don't have exif you could use getImageSize()
 
         $allowedTypes = [
-            1,  // [] gif
-            2,  // [] jpg
-            3,  // [] png
-            6,   // [] bmp
-            18,   // [] webp
+            1, // gif
+            2, // jpg
+            3, // png
+            6, // bmp
+            18, // webp
         ];
 
-        if(!in_array($type, $allowedTypes, true))
+        if(false === in_array($type, $allowedTypes, true))
         {
             throw new InvalidArgumentException('Error type images');
         }
 
-        switch($type)
+        $img = match ($type)
         {
-            case 1:
-                $img = imageCreateFromGif($filepath);
-
-                break;
-
-            case 2:
-                $img = imageCreateFromJpeg($filepath);
-
-                break;
-
-            case 3:
-                $img = imageCreateFromPng($filepath);
-
-                break;
-
-            case 6:
-                $img = imageCreateFromBmp($filepath);
-
-                break;
-
-            case 18:
-                $img = imageCreateFromWebp($filepath);
-
-                break;
-        }
+            1 => imageCreateFromGif($filepath),
+            2 => imageCreateFromJpeg($filepath),
+            3 => imageCreateFromPng($filepath),
+            6 => imageCreateFromBmp($filepath),
+            18 => imageCreateFromWebp($filepath),
+        };
 
         $img_small = $this->resize($img, 240);
-        imagewebp($img_small, $fileInfo['dirname'].'/'.$fileInfo['filename'].'.small.webp', 80);
+        imagewebp($img_small, $this->photo, 80);
         imagedestroy($img_small);
+
+        return $this;
     }
 
 
@@ -192,6 +184,4 @@ final class TelegramSendPhoto extends Telegram
         $this->markup = is_array($markup) ? json_encode($markup) : $markup;
         return $this;
     }
-
-
 }

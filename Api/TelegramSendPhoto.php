@@ -113,21 +113,27 @@ final class TelegramSendPhoto extends Telegram
         $this->photo = $url;
     }
 
+    /** Пережимает файл изображения подходящий под отправку */
     public function file(string $filepath): self
     {
         if(false === file_exists($filepath))
         {
+            $this->logger()->critical(
+                'telegram: Файл для отправки фото не найден',
+                [self::class.':'.__LINE__, $filepath],
+            );
+
             return $this;
         }
 
         $fileInfo = pathinfo($filepath);
 
         /** Присваиваем путь к сжатому локальному изображению */
-        $this->photo = $fileInfo['dirname'].'/'.$fileInfo['filename'].'.small.webp';
+        $photo = $fileInfo['dirname'].DIRECTORY_SEPARATOR.'small.webp';
 
-        if(true === file_exists($this->photo))
+        if(true === file_exists($photo))
         {
-            return $this;
+            unlink($photo);
         }
 
         /** Получаем файл для конвертации  */
@@ -143,7 +149,12 @@ final class TelegramSendPhoto extends Telegram
 
         if(false === in_array($type, $allowedTypes, true))
         {
-            throw new InvalidArgumentException('Error type images');
+            $this->logger()->critical(
+                'telegram: Неподдерживаемый тип файла изображения',
+                [self::class.':'.__LINE__, $filepath],
+            );
+
+            return $this;
         }
 
         $img = match ($type)
@@ -155,8 +166,8 @@ final class TelegramSendPhoto extends Telegram
             18 => imageCreateFromWebp($filepath),
         };
 
-        $img_small = $this->resize($img, 240);
-        imagewebp($img_small, $this->photo, 80);
+        $img_small = $this->resize($img, 640);
+        imagewebp($img_small, $photo, 80);
         imagedestroy($img_small);
 
         return $this;

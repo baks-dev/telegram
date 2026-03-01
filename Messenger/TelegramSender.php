@@ -34,7 +34,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-#[AsMessageHandler]
+#[AsMessageHandler(priority: 0)]
 final class TelegramSender
 {
     private ?string $token;

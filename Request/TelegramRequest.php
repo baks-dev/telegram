@@ -52,6 +52,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Проверяет запросы, поступающие на /telegram/endpoint
+ *
  * @see EndpointController
  */
 final class TelegramRequest
@@ -215,7 +216,7 @@ final class TelegramRequest
     {
         $TelegramRequestCallback = new TelegramRequestCallback(
             $this->getUser(),
-            $this->getChat()
+            $this->getChat(),
         );
 
         $query = $this->request->callback_query;
@@ -276,121 +277,6 @@ final class TelegramRequest
         $this->cache->save($lastItem);
 
         return $this->telegramRequest = $TelegramRequestCallback;
-    }
-
-    private function responseVideo(): ?TelegramRequestVideo
-    {
-        $TelegramRequestVideo = new TelegramRequestVideo($this->getUser(), $this->getChat());
-
-        return $this->telegramRequest = $TelegramRequestVideo;
-    }
-
-    private function responseAudio(): ?TelegramRequestAudio
-    {
-        $TelegramRequestAudio = new TelegramRequestAudio($this->getUser(), $this->getChat());
-
-        return $this->telegramRequest = $TelegramRequestAudio;
-    }
-
-    private function responseDocument(): ?TelegramRequestDocument
-    {
-        $TelegramRequestDocument = new TelegramRequestDocument($this->getUser(), $this->getChat());
-
-        return $this->telegramRequest = $TelegramRequestDocument;
-    }
-
-    private function responseLocation(): ?TelegramRequestLocation
-    {
-        $TelegramRequestLocation = new TelegramRequestLocation($this->getUser(), $this->getChat());
-
-        return $this->telegramRequest = $TelegramRequestLocation;
-    }
-
-    private function responsePhoto(): TelegramRequestIdentifier|TelegramRequestPhoto|TelegramRequestQrcode|null
-    {
-        $TelegramRequestPhoto = new TelegramRequestPhoto($this->getUser(), $this->getChat());
-
-        /** Делаем пред загрузку фото */
-
-        $photos = $this->request->message->photo;
-
-        /** Скачиваем по порядку фото для анализа  */
-        foreach($photos as $photo)
-        {
-            /* скачиваем во временный файл фото по идентификатору */
-            $file = $this->telegramGetFile
-                ->file($photo->file_id)
-                ->send(false);
-
-            if(!isset($file['tmp_file']))
-            {
-                continue;
-            }
-
-            /** Проверяем, является ли фото QR-кодом с идентификатором */
-            $barcode = $this->BarcodeRead->decode($file['tmp_file']);
-            $QRdata = $barcode->isError() ? false : $barcode->getText();
-
-            if($QRdata)
-            {
-                $this->logger->debug(sprintf('Распознали QR : %s', $QRdata));
-
-                /** Удаляем временный файл после анализа */
-                unlink($file['tmp_file']);
-
-                /** Если QR является идентификатором - присваиваем TelegramRequestIdentifier */
-                if(preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $QRdata))
-                {
-                    $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
-                    $TelegramRequestIdentifier->setIdentifier($QRdata);
-
-                    return $this->telegramRequest = $TelegramRequestIdentifier;
-                }
-
-                $TelegramRequestQrcode = new TelegramRequestQrcode($this->getUser(), $this->getChat());
-
-                return $this->telegramRequest = $TelegramRequestQrcode->setText($QRdata);
-
-            }
-
-            /**
-             * Создаем TelegramRequestPhotoFile
-             */
-            $TelegramRequestPhotoFile = new TelegramRequestPhotoFile();
-            $TelegramRequestPhotoFile
-                ->setId($photo->file_id)
-                ->setUnique($photo->file_unique_id)
-                ->setWidth($photo->width)
-                ->setHeight($photo->height)
-                ->setPath($file['tmp_file']);
-
-            if(property_exists($photo, 'file_size'))
-            {
-                $TelegramRequestPhotoFile->setSize($photo->file_size);
-            }
-
-            $TelegramRequestPhoto->addPhoto($TelegramRequestPhotoFile);
-        }
-
-        return $this->telegramRequest = $TelegramRequestPhoto;
-    }
-
-    private function responseMessage(): TelegramRequestMessage|TelegramRequestIdentifier|null
-    {
-        $message = $this->request->message;
-
-        /** Если текст является идентификатором - присваиваем TelegramRequestIdentifier */
-        if($message->text && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $message->text))
-        {
-            $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
-            $TelegramRequestIdentifier->setIdentifier($message->text);
-
-            return $this->telegramRequest = $TelegramRequestIdentifier;
-        }
-
-        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat());
-
-        return $this->telegramRequest = $TelegramRequestMessage;
     }
 
     public function getUser(): TelegramUserDTO
@@ -503,6 +389,121 @@ final class TelegramRequest
         }
 
         return $chat;
+    }
+
+    private function responsePhoto(): TelegramRequestIdentifier|TelegramRequestPhoto|TelegramRequestQrcode|null
+    {
+        $TelegramRequestPhoto = new TelegramRequestPhoto($this->getUser(), $this->getChat());
+
+        /** Делаем пред загрузку фото */
+
+        $photos = $this->request->message->photo;
+
+        /** Скачиваем по порядку фото для анализа  */
+        foreach($photos as $photo)
+        {
+            /* скачиваем во временный файл фото по идентификатору */
+            $file = $this->telegramGetFile
+                ->file($photo->file_id)
+                ->send(false);
+
+            if(!isset($file['tmp_file']))
+            {
+                continue;
+            }
+
+            /** Проверяем, является ли фото QR-кодом с идентификатором */
+            $barcode = $this->BarcodeRead->decode($file['tmp_file']);
+            $QRdata = $barcode->isError() ? false : $barcode->getText();
+
+            if($QRdata)
+            {
+                $this->logger->debug(sprintf('Распознали QR : %s', $QRdata));
+
+                /** Удаляем временный файл после анализа */
+                unlink($file['tmp_file']);
+
+                /** Если QR является идентификатором - присваиваем TelegramRequestIdentifier */
+                if(preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $QRdata))
+                {
+                    $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
+                    $TelegramRequestIdentifier->setIdentifier($QRdata);
+
+                    return $this->telegramRequest = $TelegramRequestIdentifier;
+                }
+
+                $TelegramRequestQrcode = new TelegramRequestQrcode($this->getUser(), $this->getChat());
+
+                return $this->telegramRequest = $TelegramRequestQrcode->setText($QRdata);
+
+            }
+
+            /**
+             * Создаем TelegramRequestPhotoFile
+             */
+            $TelegramRequestPhotoFile = new TelegramRequestPhotoFile();
+            $TelegramRequestPhotoFile
+                ->setId($photo->file_id)
+                ->setUnique($photo->file_unique_id)
+                ->setWidth($photo->width)
+                ->setHeight($photo->height)
+                ->setPath($file['tmp_file']);
+
+            if(property_exists($photo, 'file_size'))
+            {
+                $TelegramRequestPhotoFile->setSize($photo->file_size);
+            }
+
+            $TelegramRequestPhoto->addPhoto($TelegramRequestPhotoFile);
+        }
+
+        return $this->telegramRequest = $TelegramRequestPhoto;
+    }
+
+    private function responseAudio(): ?TelegramRequestAudio
+    {
+        $TelegramRequestAudio = new TelegramRequestAudio($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestAudio;
+    }
+
+    private function responseVideo(): ?TelegramRequestVideo
+    {
+        $TelegramRequestVideo = new TelegramRequestVideo($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestVideo;
+    }
+
+    private function responseDocument(): ?TelegramRequestDocument
+    {
+        $TelegramRequestDocument = new TelegramRequestDocument($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestDocument;
+    }
+
+    private function responseLocation(): ?TelegramRequestLocation
+    {
+        $TelegramRequestLocation = new TelegramRequestLocation($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestLocation;
+    }
+
+    private function responseMessage(): TelegramRequestMessage|TelegramRequestIdentifier|null
+    {
+        $message = $this->request->message;
+
+        /** Если текст является идентификатором - присваиваем TelegramRequestIdentifier */
+        if($message->text && preg_match('{^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$}Di', $message->text))
+        {
+            $TelegramRequestIdentifier = new TelegramRequestIdentifier($this->getUser(), $this->getChat());
+            $TelegramRequestIdentifier->setIdentifier($message->text);
+
+            return $this->telegramRequest = $TelegramRequestIdentifier;
+        }
+
+        $TelegramRequestMessage = new TelegramRequestMessage($this->getUser(), $this->getChat());
+
+        return $this->telegramRequest = $TelegramRequestMessage;
     }
 
 

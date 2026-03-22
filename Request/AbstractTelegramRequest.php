@@ -114,20 +114,6 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
     }
 
     /**
-     * Id
-     */
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function setId(int $id): self
-    {
-        $this->id = $id;
-        return $this;
-    }
-
-    /**
      * Update
      */
     public function getUpdate(): int
@@ -161,7 +147,6 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
         return $this;
     }
 
-
     /**
      * User
      */
@@ -173,6 +158,20 @@ abstract class AbstractTelegramRequest implements TelegramRequestInterface
     public function getUserId(): int
     {
         return $this->user->getId();
+    }
+
+    /**
+     * Id
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+        return $this;
     }
 
     /**

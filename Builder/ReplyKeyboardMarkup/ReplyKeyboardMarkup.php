@@ -28,6 +28,7 @@ namespace BaksDev\Telegram\Builder\ReplyKeyboardMarkup;
 
 /**
  * Класс строит клавиатуру
+ *
  * @see https://core.telegram.org/bots/api#inlinekeyboardbutton
  */
 final class ReplyKeyboardMarkup
@@ -49,7 +50,7 @@ final class ReplyKeyboardMarkup
      *  ]
      */
     private array $inlineKeyboard = [
-        self::INLINE_KEYBOARD => []
+        self::INLINE_KEYBOARD => [],
     ];
 
     private int $maxRowButtons = 3;
@@ -72,6 +73,17 @@ final class ReplyKeyboardMarkup
         }
     }
 
+    /** Возвращает массив с построенной клавиатурой */
+    public function build(): array|null
+    {
+        if(true === empty($this->inlineKeyboard[self::INLINE_KEYBOARD]))
+        {
+            return null;
+        }
+
+        return $this->inlineKeyboard;
+    }
+
     /** Добавить кнопку в новую строку */
     public function addNewRow(ReplyKeyboardButton $button)
     {
@@ -87,22 +99,17 @@ final class ReplyKeyboardMarkup
         $this->currentIndex++;
     }
 
-    /** Возвращает массив с построенной клавиатурой */
-    public function build(): array|null
-    {
-        if(true === empty($this->inlineKeyboard[self::INLINE_KEYBOARD]))
-        {
-            return null;
-        }
-
-        return $this->inlineKeyboard;
-    }
-
     /** Устанавливает максимальное количество кнопок в строке */
     public function setMaxRowButtons(int $max): self
     {
         $this->maxRowButtons = $max;
         return $this;
+    }
+
+    /** Получить текст описания для клавиатуры */
+    public function getDescription(): ?string
+    {
+        return $this->description;
     }
 
     /** Опционально: устанавливает текст для сообщения, отправляемого с клавиатурой */
@@ -116,11 +123,5 @@ final class ReplyKeyboardMarkup
 
         $this->description = $description;
         return $this;
-    }
-
-    /** Получить текст описания для клавиатуры */
-    public function getDescription(): ?string
-    {
-        return $this->description;
     }
 }

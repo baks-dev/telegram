@@ -43,7 +43,7 @@ final class TelegramGetFile extends Telegram
     protected function option(): ?array
     {
         return [
-            'file_id' => $this->id
+            'file_id' => $this->id,
         ];
     }
 }

@@ -30,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Новый входящий запрос обратного вызова
+ *
  * @see https://core.telegram.org/bots/api#callbackquery
  */
 final class TelegramRequestCallback extends AbstractTelegramRequest

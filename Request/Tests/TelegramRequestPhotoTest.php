@@ -61,12 +61,12 @@ final class TelegramRequestPhotoTest extends WebTestCase
                         "id" => 1391925303,
                         "is_bot" => false,
                         "first_name" => "Michel Angelo \u041b",
-                        "language_code" => "ru"
+                        "language_code" => "ru",
                     ],
                     "chat" => [
                         "id" => 1391925303,
                         "first_name" => "Michel Angelo \u041b",
-                        "type" => "private"
+                        "type" => "private",
                     ],
                     "date" => 1708088440,
                     "photo" => [
@@ -75,24 +75,24 @@ final class TelegramRequestPhotoTest extends WebTestCase
                             "file_unique_id" => "AQADstMxG44MeEp4",
                             "file_size" => 2785,
                             "width" => 90,
-                            "height" => 84
+                            "height" => 84,
                         ],
                         [
                             "file_id" => "AgACAgIAAxkBAAIITWXPXHjn2CVOvPk7mJwpPZ6MstBFAAKy0zEbjgx4SpY9YRUDKZifAQADAgADeAADNAQ",
                             "file_unique_id" => "AQADstMxG44MeEp9",
                             "file_size" => 17676,
                             "width" => 321,
-                            "height" => 298
+                            "height" => 298,
                         ],
                         [
                             "file_id" => "AgACAgIAAxkBAAIITWXPXHjn2CVOvPk7mJwpPZ6MstBFAAKy0zEbjgx4SpY9YRUDKZifAQADAgADbQADNAQ",
                             "file_unique_id" => "AQADstMxG44MeEpy",
                             "file_size" => 21627,
                             "width" => 320,
-                            "height" => 297
-                        ]
-                    ]
-                ]
+                            "height" => 297,
+                        ],
+                    ],
+                ],
             ];
 
 

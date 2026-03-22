@@ -33,6 +33,16 @@ enum TelegramBotCommands
     case MENU;
     case TABLE;
 
+    /** Получить все ассоциированные команды */
+    public static function allCommands(): array
+    {
+        return array_merge(
+            TelegramBotCommands::START->commands(),
+            TelegramBotCommands::MENU->commands(),
+            TelegramBotCommands::TABLE->commands(),
+        );
+    }
+
     /** Получить ассоциированные команды по типу */
     public function commands(): array
     {
@@ -42,15 +52,5 @@ enum TelegramBotCommands
             TelegramBotCommands::MENU => ['/menu', 'menu'],
             TelegramBotCommands::TABLE => ['/table'],
         };
-    }
-
-    /** Получить все ассоциированные команды */
-    public static function allCommands(): array
-    {
-        return array_merge(
-            TelegramBotCommands::START->commands(),
-            TelegramBotCommands::MENU->commands(),
-            TelegramBotCommands::TABLE->commands(),
-        );
     }
 }

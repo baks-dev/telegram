@@ -66,48 +66,6 @@ final class TelegramSendPhoto extends Telegram
         return $this;
     }
 
-
-    protected function method(): string
-    {
-        return 'sendPhoto';
-    }
-
-    protected function option(): ?array
-    {
-
-        if($this->chanel === null)
-        {
-            throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
-        }
-
-
-        $option['chat_id'] = $this->chanel;
-
-
-        if($this->photo === null)
-        {
-            throw new InvalidArgumentException('Не указано фото для отправки в Telegram');
-        }
-
-
-        $option['photo'] = $this->photo;
-
-
-        if($this->caption)
-        {
-            $option['caption'] = $this->caption;
-            $option['parse_mode'] = 'html';
-        }
-
-        if($this->markup)
-        {
-            $option['reply_markup'] = $this->markup;
-        }
-
-
-        return $option;
-    }
-
     public function url(string $url): void
     {
         $this->photo = $url;
@@ -173,7 +131,6 @@ final class TelegramSendPhoto extends Telegram
         return $this;
     }
 
-
     private function resize($img, $height)
     {
         $getWidth = imagesx($img);
@@ -194,5 +151,46 @@ final class TelegramSendPhoto extends Telegram
     {
         $this->markup = is_array($markup) ? json_encode($markup) : $markup;
         return $this;
+    }
+
+    protected function method(): string
+    {
+        return 'sendPhoto';
+    }
+
+    protected function option(): ?array
+    {
+
+        if($this->chanel === null)
+        {
+            throw new InvalidArgumentException('Не указан идентификатор чата Telegram');
+        }
+
+
+        $option['chat_id'] = $this->chanel;
+
+
+        if($this->photo === null)
+        {
+            throw new InvalidArgumentException('Не указано фото для отправки в Telegram');
+        }
+
+
+        $option['photo'] = $this->photo;
+
+
+        if($this->caption)
+        {
+            $option['caption'] = $this->caption;
+            $option['parse_mode'] = 'html';
+        }
+
+        if($this->markup)
+        {
+            $option['reply_markup'] = $this->markup;
+        }
+
+
+        return $option;
     }
 }

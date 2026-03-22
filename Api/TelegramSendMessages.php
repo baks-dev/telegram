@@ -88,12 +88,6 @@ final class TelegramSendMessages extends Telegram
         return $this;
     }
 
-
-    protected function method(): string
-    {
-        return 'sendMessage';
-    }
-
     public function delete(int|array $delete): self
     {
         if(is_array($delete) && !empty($delete))
@@ -169,6 +163,11 @@ final class TelegramSendMessages extends Telegram
         }
 
         return $option;
+    }
+
+    protected function method(): string
+    {
+        return 'sendMessage';
     }
 
 

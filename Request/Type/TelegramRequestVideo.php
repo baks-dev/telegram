@@ -30,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Сообщение — видео, информация о видео
+ *
  * @see https://core.telegram.org/bots/api#video
  */
 final class TelegramRequestVideo extends AbstractTelegramRequest

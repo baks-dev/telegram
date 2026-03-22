@@ -61,13 +61,15 @@ final class TelegramSender
         $this->token = $message->getToken();
 
         $HttpClient = HttpClient::create()->withOptions(
-            ['base_uri' => 'https://api.telegram.org/bot'.$this->token.'/']
+            ['base_uri' => 'https://api.telegram.org/bot'.$this->token.'/'],
         );
 
         $response = $HttpClient->request(
             'POST',
             $message->getMethod(),
-            ['json' => $message->getOption()]
+            [
+                'json' => $message->getOption(),
+            ],
         );
 
         if($response->getStatusCode() !== 200)
@@ -122,7 +124,7 @@ final class TelegramSender
                         $HttpClient->request(
                             'POST',
                             'deleteMessage',
-                            ['json' => ['message_id' => $delete, 'chat_id' => $option['chat_id']]]
+                            ['json' => ['message_id' => $delete, 'chat_id' => $option['chat_id']]],
                         );
                     }
                     catch(Exception)
@@ -144,12 +146,12 @@ final class TelegramSender
         if($dataFile['ok'])
         {
             $HttpClient = HttpClient::create()->withOptions(
-                ['base_uri' => 'https://api.telegram.org/file/bot'.$this->token.'/']
+                ['base_uri' => 'https://api.telegram.org/file/bot'.$this->token.'/'],
             );
 
             $download = $HttpClient->request(
                 'GET',
-                $dataFile['result']['file_path']
+                $dataFile['result']['file_path'],
             );
 
             $pathInfo = pathinfo($dataFile['result']['file_path']);
@@ -165,7 +167,7 @@ final class TelegramSender
 
             $dataFile = array_merge(
                 $dataFile,
-                ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].$extension]
+                ['tmp_file' => sys_get_temp_dir().'/'.$dataFile['result']['file_unique_id'].$extension],
             );
 
         }

@@ -37,9 +37,12 @@ use Symfony\Component\DependencyInjection\Attribute\Target;
 
 abstract class Telegram
 {
-    private ?MessageDispatchInterface $messageDispatch;
-
     protected string|int|null $chanel = null;
+    private ?MessageDispatchInterface $messageDispatch;
+    /**
+     * Токен авторизации.
+     */
+    private ?string $token = null;
 
     public function __construct(
         #[Autowire(env: 'APP_ENV')] private readonly string $environment,
@@ -53,22 +56,11 @@ abstract class Telegram
         $this->messageDispatch = $messageDispatch;
     }
 
-
-    abstract protected function option(): ?array;
-
-    abstract protected function method(): string;
-
-    /**
-     * Токен авторизации.
-     */
-    private ?string $token = null;
-
     public function token(string $token): self
     {
         $this->token = $token;
         return $this;
     }
-
 
     public function chanel(int|string $chanel): self
     {
@@ -80,11 +72,6 @@ abstract class Telegram
         $this->chanel = $chanel;
 
         return $this;
-    }
-
-    protected function getToken(): ?string
-    {
-        return $this->token;
     }
 
     public function send(bool $async = false): bool|array|null
@@ -104,14 +91,14 @@ abstract class Telegram
         $TelegramMessage = new TelegramMessage(
             method: $this->method(),
             option: $this->option(),
-            token: $this->token
+            token: $this->token,
         );
 
         if($async && $this->messageDispatch)
         {
             $this->messageDispatch->dispatch(
                 message: $TelegramMessage,
-                transport: $this->method() === 'deleteMessage' ? 'async' : 'telegram'
+                transport: $this->method() === 'deleteMessage' ? 'async' : 'telegram',
             );
             return true;
         }
@@ -119,10 +106,24 @@ abstract class Telegram
         $TelegramSender = new TelegramSender(
             logger: $this->logger,
             appCache: $this->cache,
-            deduplicator: $this->deduplicator
+            deduplicator: $this->deduplicator,
         );
 
         return $TelegramSender($TelegramMessage) ?: false;
+    }
+
+    protected function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    abstract protected function method(): string;
+
+    abstract protected function option(): ?array;
+
+    public function logger(): LoggerInterface
+    {
+        return $this->logger;
     }
 
     /**
@@ -133,11 +134,6 @@ abstract class Telegram
     protected function isExecuteEnvironment(): bool
     {
         return $this->environment === 'prod';
-    }
-
-    public function logger(): LoggerInterface
-    {
-        return $this->logger;
     }
 
 }

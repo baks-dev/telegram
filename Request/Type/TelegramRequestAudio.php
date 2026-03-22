@@ -30,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Сообщение — аудиофайл, информация о файле.
+ *
  * @see https://core.telegram.org/bots/api#audio
  */
 final class TelegramRequestAudio extends AbstractTelegramRequest

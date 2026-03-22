@@ -61,16 +61,16 @@ final class TelegramRequestMessageTest extends WebTestCase
                         "id" => 1391925303,
                         "is_bot" => false,
                         "first_name" => "Michel Angelo",
-                        "language_code" => "ru"
+                        "language_code" => "ru",
                     ],
                     "chat" => [
                         "id" => 1391925303,
                         "first_name" => "Michel Angelo",
-                        "type" => "private"
+                        "type" => "private",
                     ],
                     "date" => 1708084503,
-                    "text" => "message"
-                ]
+                    "text" => "message",
+                ],
             ];
 
 

@@ -30,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Сообщение — общий файл, информация о файле
+ *
  * @see https://core.telegram.org/bots/api#document
  */
 final class TelegramRequestDocument extends AbstractTelegramRequest

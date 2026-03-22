@@ -30,17 +30,13 @@ use InvalidArgumentException;
 
 /**
  * Используйте этот метод, когда вам нужно сообщить пользователю, что что-то происходит на стороне бота.
- * Статус устанавливается на 5 секунд или меньше (при поступлении сообщения от вашего бота клиенты Telegram очищают его статус набора).
- * Возвращает True в случае успеха.
+ * Статус устанавливается на 5 секунд или меньше (при поступлении сообщения от вашего бота клиенты Telegram очищают его
+ * статус набора). Возвращает True в случае успеха.
+ *
  * @see https://core.telegram.org/bots/api#sendchataction
  */
 final class TelegramChatAction extends Telegram
 {
-    protected function method(): string
-    {
-        return 'sendChatAction';
-    }
-
     function option(): ?array
     {
         if($this->chanel === null)
@@ -52,5 +48,10 @@ final class TelegramChatAction extends Telegram
         $option['action'] = 'typing';
 
         return $option;
+    }
+
+    protected function method(): string
+    {
+        return 'sendChatAction';
     }
 }

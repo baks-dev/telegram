@@ -30,6 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Сообщение — это общее местоположение, информация о местоположении.
+ *
  * @see https://core.telegram.org/bots/api#location
  */
 final class TelegramRequestLocation extends AbstractTelegramRequest
